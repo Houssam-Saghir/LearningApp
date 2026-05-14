@@ -25,3 +25,6 @@ client-app/.angular/
 # OS
 .DS_Store
 Thumbs.db
+
+*.db-shm
+*.db-wal
