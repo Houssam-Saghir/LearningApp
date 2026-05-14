@@ -8,9 +8,24 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      const message = (error.error && (error.error.title || Object.values(error.error.errors ?? {}).flat().join(', '))) || error.message || 'Something went wrong.';
-      notificationService.error(String(message));
+      notificationService.error(extractErrorMessage(error));
       return throwError(() => error);
     })
   );
 };
+
+function extractErrorMessage(error: HttpErrorResponse): string {
+  const validationErrors = error.error?.errors;
+  if (validationErrors) {
+    const messages = Object.values(validationErrors).flat().filter(Boolean);
+    if (messages.length) {
+      return String(messages.join(', '));
+    }
+  }
+
+  if (error.error?.title) {
+    return String(error.error.title);
+  }
+
+  return error.message || 'Something went wrong.';
+}

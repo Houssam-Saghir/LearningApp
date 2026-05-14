@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using AutoMapper;
 using FluentValidation;
-using LearningApp.API.Extensions;
 using LearningApp.API.Mapping;
 using LearningApp.API.Services;
 using LearningApp.API.Validation;
