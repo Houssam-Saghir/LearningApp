@@ -10,6 +10,13 @@ export interface User {
   token: string;
 }
 
+export interface Instructor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -19,6 +26,11 @@ export interface Course {
   level: CourseLevel;
   price: number;
   isPublished: boolean;
+  createdAt: string;
+  instructorId: string;
+  instructor?: Instructor;
+  modules?: Module[];
+  enrollments?: Enrollment[];
 }
 
 export interface Enrollment {
@@ -35,4 +47,23 @@ export interface Review {
   userId: string;
   rating: number;
   comment: string;
+  createdAt: string;
+  userName?: string;
+}
+
+export interface Module {
+  id: string;
+  courseId: string;
+  title: string;
+  order: number;
+  lessons: Lesson[];
+}
+
+export interface Lesson {
+  id: string;
+  moduleId: string;
+  title: string;
+  content: string;
+  videoUrl: string;
+  order: number;
 }

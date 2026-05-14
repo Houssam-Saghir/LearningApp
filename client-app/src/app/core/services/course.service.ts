@@ -11,6 +11,9 @@ interface PagedResult<T> {
   pageSize: number;
 }
 
+type CreateCoursePayload = Pick<Course, 'title' | 'description' | 'thumbnailUrl' | 'category' | 'level' | 'price'>;
+type UpdateCoursePayload = CreateCoursePayload & Pick<Course, 'isPublished'>;
+
 @Injectable({ providedIn: 'root' })
 export class CourseService {
   constructor(private readonly http: HttpClient) {}
@@ -27,11 +30,15 @@ export class CourseService {
     return this.http.get<Review[]>(`${environment.apiUrl}/api/courses/${courseId}/reviews`);
   }
 
-  createCourse(payload: Omit<Course, 'id' | 'isPublished'>): Observable<Course> {
+  createReview(courseId: string, payload: { rating: number; comment: string }): Observable<Review> {
+    return this.http.post<Review>(`${environment.apiUrl}/api/courses/${courseId}/reviews`, payload);
+  }
+
+  createCourse(payload: CreateCoursePayload): Observable<Course> {
     return this.http.post<Course>(`${environment.apiUrl}/api/courses`, payload);
   }
 
-  updateCourse(id: string, payload: Omit<Course, 'id'>): Observable<Course> {
+  updateCourse(id: string, payload: UpdateCoursePayload): Observable<Course> {
     return this.http.put<Course>(`${environment.apiUrl}/api/courses/${id}`, payload);
   }
 

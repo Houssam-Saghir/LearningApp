@@ -54,6 +54,7 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
             .Include(c => c.Modules)
             .ThenInclude(m => m.Lessons)
             .Include(c => c.Reviews)
+            .Include(c => c.Instructor)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (course is not null)
