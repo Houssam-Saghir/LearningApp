@@ -4,9 +4,8 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
-  standalone: true,
-  imports: [ReactiveFormsModule],
-  template: `
+    imports: [ReactiveFormsModule],
+    template: `
     <h1>Register</h1>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <input formControlName="firstName" placeholder="First name" />

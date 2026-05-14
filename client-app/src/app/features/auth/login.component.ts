@@ -4,9 +4,8 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
-  standalone: true,
-  imports: [ReactiveFormsModule, RouterLink],
-  template: `
+    imports: [ReactiveFormsModule, RouterLink],
+    template: `
     <h1>Login</h1>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <input formControlName="email" placeholder="Email" />

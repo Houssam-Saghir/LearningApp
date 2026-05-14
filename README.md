@@ -1,6 +1,6 @@
 # LearningApp
 
-A monolithic full-stack Learning Management System (LMS) built with **ASP.NET Core 10** and **Angular 18**.
+A monolithic full-stack Learning Management System (LMS) built with **ASP.NET Core 10** and **Angular 19**.
 
 ## Solution Structure
 
@@ -19,7 +19,7 @@ client-app/
 - EF Core 10 + SQLite
 - JWT authentication/authorization
 - AutoMapper + FluentValidation
-- Angular 18 standalone app + Angular Material
+- Angular 19 standalone app + Angular Material
 
 ## Run Locally
 

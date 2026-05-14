@@ -6,9 +6,8 @@ import { Course, Review } from '../../core/models/models';
 import { StarRatingComponent } from '../../shared/components/star-rating.component';
 
 @Component({
-  standalone: true,
-  imports: [CurrencyPipe, NgFor, NgIf, StarRatingComponent],
-  template: `
+    imports: [CurrencyPipe, NgFor, NgIf, StarRatingComponent],
+    template: `
     <ng-container *ngIf="course as c">
       <h1>{{ c.title }}</h1>
       <p>{{ c.description }}</p>

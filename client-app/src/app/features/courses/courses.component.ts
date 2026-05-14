@@ -6,14 +6,13 @@ import { Course } from '../../core/models/models';
 import { CourseService } from '../../core/services/course.service';
 
 @Component({
-  standalone: true,
-  imports: [ReactiveFormsModule, NgFor, CourseCardComponent],
-  template: `
+    imports: [ReactiveFormsModule, NgFor, CourseCardComponent],
+    template: `
     <h1>Course Catalog</h1>
     <input [formControl]="search" placeholder="Search courses" />
     <div class="grid"><app-course-card *ngFor="let course of courses" [course]="course" /></div>
   `,
-  styles: ['.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem} input{padding:.65rem;border-radius:.5rem;border:1px solid #cbd5e1;margin-bottom:1rem;width:100%}']
+    styles: ['.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem} input{padding:.65rem;border-radius:.5rem;border:1px solid #cbd5e1;margin-bottom:1rem;width:100%}']
 })
 export class CoursesComponent implements OnInit {
   search = new FormControl('');

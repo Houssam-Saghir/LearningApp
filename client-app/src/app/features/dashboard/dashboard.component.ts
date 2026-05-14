@@ -4,9 +4,8 @@ import { EnrollmentService } from '../../core/services/enrollment.service';
 import { Enrollment } from '../../core/models/models';
 
 @Component({
-  standalone: true,
-  imports: [NgFor],
-  template: `
+    imports: [NgFor],
+    template: `
     <h1>Dashboard</h1>
     <div *ngFor="let enrollment of enrollments">
       <strong>{{ enrollment.course?.title || enrollment.courseId }}</strong>
