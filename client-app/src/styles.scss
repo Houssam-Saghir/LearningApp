@@ -1,0 +1,31 @@
+@use '@angular/material' as mat;
+
+$theme: mat.define-theme((
+  color: (
+    theme-type: light,
+    primary: mat.$azure-palette,
+    tertiary: mat.$orange-palette
+  ),
+  typography: (
+    brand-family: 'Inter, Roboto, sans-serif'
+  )
+));
+
+html {
+  @include mat.all-component-themes($theme);
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Roboto, sans-serif;
+  background: #f8fafc;
+  color: #1e293b;
+}
+
+body.loading::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6);
+  z-index: 1000;
+}
