@@ -56,6 +56,8 @@ public class LessonsController(AppDbContext dbContext) : ControllerBase
             lessonProgress.CompletedAt = DateTime.UtcNow;
         }
 
+        await dbContext.SaveChangesAsync();
+
         var courseId = lesson.Module.CourseId;
         var totalLessons = await dbContext.Lessons.CountAsync(l => l.Module!.CourseId == courseId);
         var completedLessons = await dbContext.LessonProgresses.CountAsync(lp => lp.UserId == userId && lp.IsCompleted && lp.Lesson!.Module!.CourseId == courseId);
