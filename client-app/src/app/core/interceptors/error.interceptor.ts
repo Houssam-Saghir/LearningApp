@@ -1,31 +1,16 @@
-import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
+import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, throwError } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
 
-export const errorInterceptor: HttpInterceptorFn = (request, next) => {
-  const notificationService = inject(NotificationService);
+export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  const snackBar = inject(MatSnackBar);
 
-  return next(request).pipe(
-    catchError((error: HttpErrorResponse) => {
-      notificationService.error(extractErrorMessage(error));
+  return next(req).pipe(
+    catchError(error => {
+      const message = error?.error?.message || 'Unexpected error';
+      snackBar.open(message, 'Close', { duration: 3500, horizontalPosition: 'right', verticalPosition: 'top' });
       return throwError(() => error);
     })
   );
 };
-
-function extractErrorMessage(error: HttpErrorResponse): string {
-  const validationErrors = error.error?.errors;
-  if (validationErrors) {
-    const messages = Object.values(validationErrors).flat().filter(Boolean);
-    if (messages.length) {
-      return String(messages.join(', '));
-    }
-  }
-
-  if (error.error?.title) {
-    return String(error.error.title);
-  }
-
-  return error.message || 'Something went wrong.';
-}

@@ -1,38 +1,82 @@
-using AutoMapper;
-using FluentValidation;
-using LearningApp.Core.DTOs;
-using LearningApp.Core.Interfaces;
+using LearningApp.API.Security;
+using LearningApp.Core.DTOs.Enrollments;
+using LearningApp.Core.Entities;
+using LearningApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearningApp.API.Controllers;
 
 [ApiController]
-[Authorize]
 [Route("api/enrollments")]
-public sealed class EnrollmentsController(
-    IEnrollmentService enrollmentService,
-    IValidator<CreateEnrollmentRequest> enrollmentValidator,
-    IMapper mapper) : ControllerBase
+[Authorize]
+public class EnrollmentsController(AppDbContext dbContext) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<EnrollmentDto>> Enroll(CreateEnrollmentRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Enrollment>> Enroll(CreateEnrollmentRequest request)
     {
-        await enrollmentValidator.ValidateAndThrowAsync(request, cancellationToken);
-        var enrollment = await enrollmentService.EnrollAsync(request, cancellationToken);
-        return Ok(mapper.Map<EnrollmentDto>(enrollment));
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        if (!await dbContext.Courses.AnyAsync(c => c.Id == request.CourseId && c.IsPublished))
+        {
+            return NotFound(new { message = "Course not found or unpublished." });
+        }
+
+        if (await dbContext.Enrollments.AnyAsync(e => e.UserId == userId && e.CourseId == request.CourseId))
+        {
+            return Conflict(new { message = "Already enrolled." });
+        }
+
+        var enrollment = new Enrollment
+        {
+            UserId = userId.Value,
+            CourseId = request.CourseId,
+            Progress = 0
+        };
+
+        dbContext.Enrollments.Add(enrollment);
+        await dbContext.SaveChangesAsync();
+        return Ok(enrollment);
     }
 
     [HttpGet("my")]
-    public async Task<ActionResult<IReadOnlyCollection<EnrollmentDto>>> MyEnrollments(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyCollection<Enrollment>>> GetMyEnrollments()
     {
-        var enrollments = await enrollmentService.GetMyEnrollmentsAsync(cancellationToken);
-        return Ok(mapper.Map<IReadOnlyCollection<EnrollmentDto>>(enrollments));
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var enrollments = await dbContext.Enrollments
+            .Where(e => e.UserId == userId)
+            .Include(e => e.Course)
+            .OrderByDescending(e => e.EnrolledAt)
+            .ToListAsync();
+
+        return Ok(enrollments);
     }
 
     [HttpGet("{courseId:guid}/progress")]
-    public async Task<ActionResult<CourseProgressDto>> GetProgress(Guid courseId, CancellationToken cancellationToken)
+    public async Task<ActionResult<object>> GetProgress(Guid courseId)
     {
-        return Ok(await enrollmentService.GetCourseProgressAsync(courseId, cancellationToken));
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var enrollment = await dbContext.Enrollments.FirstOrDefaultAsync(e => e.CourseId == courseId && e.UserId == userId);
+        if (enrollment is null)
+        {
+            return NotFound(new { message = "Enrollment not found." });
+        }
+
+        return Ok(new { enrollment.CourseId, enrollment.Progress, enrollment.CompletedAt });
     }
 }

@@ -1,23 +1,18 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Enrollment } from '../models/models';
 import { environment } from '../../../environments/environment';
-import { CourseProgress, Enrollment } from '../models/app.models';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
-  private readonly http = inject(HttpClient);
-  private readonly apiBaseUrl = `${environment.apiBaseUrl}/enrollments`;
+  constructor(private readonly http: HttpClient) {}
 
   enroll(courseId: string): Observable<Enrollment> {
-    return this.http.post<Enrollment>(this.apiBaseUrl, { courseId });
+    return this.http.post<Enrollment>(`${environment.apiUrl}/api/enrollments`, { courseId });
   }
 
-  getMyEnrollments(): Observable<Enrollment[]> {
-    return this.http.get<Enrollment[]>(`${this.apiBaseUrl}/my`);
-  }
-
-  getProgress(courseId: string): Observable<CourseProgress> {
-    return this.http.get<CourseProgress>(`${this.apiBaseUrl}/${courseId}/progress`);
+  myEnrollments(): Observable<Enrollment[]> {
+    return this.http.get<Enrollment[]>(`${environment.apiUrl}/api/enrollments/my`);
   }
 }

@@ -1,54 +1,29 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { Course, Review } from '../models/models';
 import { environment } from '../../../environments/environment';
-import { CourseDetails, CourseQuery, CourseSummary, PagedResult, Review, UpsertCourseRequest } from '../models/app.models';
+
+interface PagedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CourseService {
-  private readonly http = inject(HttpClient);
-  private readonly apiBaseUrl = `${environment.apiBaseUrl}/courses`;
+  constructor(private readonly http: HttpClient) {}
 
-  getCourses(query: CourseQuery = {}): Observable<PagedResult<CourseSummary>> {
-    let params = new HttpParams();
-    Object.entries(query).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== '') {
-        params = params.set(key, String(value));
-      }
-    });
-
-    return this.http.get<PagedResult<CourseSummary>>(this.apiBaseUrl, { params });
+  getCourses(params: Record<string, string | number> = {}): Observable<PagedResult<Course>> {
+    return this.http.get<PagedResult<Course>>(`${environment.apiUrl}/api/courses`, { params });
   }
 
-  getCourse(id: string): Observable<CourseDetails> {
-    return this.http.get<CourseDetails>(`${this.apiBaseUrl}/${id}`);
-  }
-
-  getInstructorCourses(): Observable<CourseDetails[]> {
-    return this.http.get<CourseDetails[]>(`${this.apiBaseUrl}/instructor/my`);
-  }
-
-  createCourse(payload: UpsertCourseRequest): Observable<CourseDetails> {
-    return this.http.post<CourseDetails>(this.apiBaseUrl, payload);
-  }
-
-  updateCourse(id: string, payload: UpsertCourseRequest): Observable<CourseDetails> {
-    return this.http.put<CourseDetails>(`${this.apiBaseUrl}/${id}`, payload);
-  }
-
-  deleteCourse(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiBaseUrl}/${id}`);
-  }
-
-  publishCourse(id: string, isPublished?: boolean): Observable<CourseDetails> {
-    return this.http.post<CourseDetails>(`${this.apiBaseUrl}/${id}/publish`, { isPublished });
+  getCourse(id: string): Observable<Course> {
+    return this.http.get<Course>(`${environment.apiUrl}/api/courses/${id}`);
   }
 
   getReviews(courseId: string): Observable<Review[]> {
-    return this.http.get<Review[]>(`${this.apiBaseUrl}/${courseId}/reviews`);
-  }
-
-  addReview(courseId: string, payload: { rating: number; comment: string }): Observable<Review> {
-    return this.http.post<Review>(`${this.apiBaseUrl}/${courseId}/reviews`, payload);
+    return this.http.get<Review[]>(`${environment.apiUrl}/api/courses/${courseId}/reviews`);
   }
 }

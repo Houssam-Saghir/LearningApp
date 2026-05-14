@@ -1,50 +1,39 @@
 # LearningApp
 
-LearningApp is a full-stack monolithic learning management system built with **Angular 21** and **.NET 10**. The repository contains a layered ASP.NET Core API, a SQLite database with seeded LMS data, and a standalone Angular client that is served by the API in production.
+A monolithic full-stack Learning Management System (LMS) built with **ASP.NET Core 10** and **Angular 19**.
 
-## Solution structure
+## Solution Structure
 
-```text
-LearningApp/
-├── LearningApp.sln
-├── src/
-│   ├── LearningApp.API/
-│   ├── LearningApp.Core/
-│   └── LearningApp.Infrastructure/
-└── client-app/
+```
+LearningApp.sln
+src/
+├── LearningApp.API
+├── LearningApp.Core
+└── LearningApp.Infrastructure
+client-app/
 ```
 
-## Features
+## Tech Stack
 
-- JWT authentication and role-based authorization
-- Published course catalog with filtering, search, and pagination
-- Course details with curriculum, reviews, and enrollment
-- Student dashboard, my courses, profile, and course player
-- Instructor dashboard, course management, and nested course editor
-- EF Core 10 + SQLite with seeded users, courses, lessons, enrollments, quizzes, and reviews
-- Angular standalone components, lazy-loaded routes, reactive forms, route guards, interceptors, loading states, toast notifications, and dark mode
+- ASP.NET Core 10 Web API
+- EF Core 10 + SQLite
+- JWT authentication/authorization
+- AutoMapper + FluentValidation
+- Angular 19 standalone app + Angular Material
 
-## Prerequisites
+## Run Locally
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/)
-- [Node.js 20+](https://nodejs.org/)
-- npm 10+
-
-## Development
-
-### 1. Run the API
+### 1) Start API
 
 ```bash
-dotnet restore LearningApp.sln
-dotnet run --project src/LearningApp.API
+cd src/LearningApp.API
+dotnet run
 ```
 
-The API runs on:
+API base URL: `http://localhost:5000`
+Swagger UI: `http://localhost:5000/swagger`
 
-- `https://localhost:5001`
-- `http://localhost:5000`
-
-### 2. Run the Angular client
+### 2) Start Angular app (development)
 
 ```bash
 cd client-app
@@ -52,33 +41,32 @@ npm install
 npm start
 ```
 
-The Angular dev server runs on `http://localhost:4200` and proxies `/api` requests to `https://localhost:5001` via `proxy.conf.json`.
+Frontend URL: `http://localhost:4200`
 
-## Production
+`client-app/proxy.conf.json` proxies `/api` to `http://localhost:5000`.
 
-Build the Angular app into the API `wwwroot` folder, then run the API:
+## Production Publish
+
+From repository root:
 
 ```bash
-cd client-app
-npm run build
-
-dotnet run --project src/LearningApp.API
+dotnet publish src/LearningApp.API/LearningApp.API.csproj -c Release
 ```
 
-## API documentation
+This runs Angular production build and copies files to API `wwwroot`.
 
-When the API is running in development, the OpenAPI/Swagger document is available at:
+For production, set a secure JWT key via configuration (for example environment variable `Jwt__Key`).
 
-- `https://localhost:5001/openapi/v1.json`
+## Default Seed Credentials
 
-## Seeded credentials
+- **Admin**: `admin@learningapp.com` / `Admin@123`
+- **Instructor**: `instructor@learningapp.com` / `Instructor@123`
+- **Student**: `student@learningapp.com` / `Student@123`
 
-- **Admin** — `admin@learningapp.com` / `Admin@123`
-- **Instructor** — `instructor@learningapp.com` / `Instructor@123`
-- **Student** — `student@learningapp.com` / `Student@123`
+## API Highlights
 
-## Notes
-
-- SQLite is used so the app runs locally without external infrastructure.
-- The database is created and seeded automatically on first API startup.
-- Angular production output is written to `src/LearningApp.API/wwwroot`.
+- Auth: `/api/auth/register`, `/api/auth/login`, `/api/auth/me`
+- Courses: filtering + CRUD + publish + reviews
+- Enrollments: enroll, my enrollments, progress
+- Lessons: get lesson, mark complete
+- Dashboard: `/api/dashboard/stats`

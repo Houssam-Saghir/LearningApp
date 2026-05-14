@@ -1,91 +1,192 @@
-using AutoMapper;
-using LearningApp.Core.Domain;
-using LearningApp.Core.DTOs;
-using LearningApp.Core.Interfaces;
+using LearningApp.API.Security;
+using LearningApp.Core.DTOs.Courses;
+using LearningApp.Core.DTOs.Reviews;
+using LearningApp.Core.Entities;
+using LearningApp.Core.Enums;
+using LearningApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace LearningApp.API.Controllers;
 
 [ApiController]
 [Route("api/courses")]
-public sealed class CoursesController(ICourseService courseService, IReviewService reviewService, IMapper mapper) : ControllerBase
+public class CoursesController(AppDbContext dbContext) : ControllerBase
 {
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<PagedResult<CourseSummaryDto>>> GetCourses([FromQuery] CourseQueryParameters query, CancellationToken cancellationToken)
+    public async Task<ActionResult<PagedResult<Course>>> GetCourses([FromQuery] CourseQuery query)
     {
-        var (courses, totalCount) = await courseService.GetPublishedCoursesAsync(query, cancellationToken);
-        return Ok(new PagedResult<CourseSummaryDto>
+        var coursesQuery = dbContext.Courses.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(query.Category))
         {
-            Items = mapper.Map<IReadOnlyCollection<CourseSummaryDto>>(courses),
-            TotalCount = totalCount,
-            Page = Math.Max(query.Page, 1),
-            PageSize = Math.Clamp(query.PageSize, 1, 24)
-        });
+            coursesQuery = coursesQuery.Where(x => x.Category == query.Category);
+        }
+
+        if (query.Level.HasValue)
+        {
+            coursesQuery = coursesQuery.Where(x => x.Level == query.Level);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Search))
+        {
+            var search = query.Search.ToLowerInvariant();
+            coursesQuery = coursesQuery.Where(x => x.Title.ToLower().Contains(search) || x.Description.ToLower().Contains(search));
+        }
+
+        var total = await coursesQuery.CountAsync();
+        var items = await coursesQuery
+            .OrderByDescending(x => x.CreatedAt)
+            .Skip((Math.Max(1, query.Page) - 1) * Math.Max(1, query.PageSize))
+            .Take(Math.Max(1, query.PageSize))
+            .ToListAsync();
+
+        return Ok(new PagedResult<Course>(items, total, query.Page, query.PageSize));
     }
 
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<ActionResult<CourseDetailsDto>> GetCourse(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<Course>> GetCourse(Guid id)
     {
-        var course = await courseService.GetCourseDetailsAsync(id, cancellationToken);
-        return Ok(mapper.Map<CourseDetailsDto>(course));
-    }
+        var course = await dbContext.Courses
+            .Include(c => c.Modules)
+            .ThenInclude(m => m.Lessons)
+            .Include(c => c.Reviews)
+            .FirstOrDefaultAsync(c => c.Id == id);
 
-    [HttpGet("instructor/my")]
-    [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
-    public async Task<ActionResult<IReadOnlyCollection<CourseDetailsDto>>> GetInstructorCourses(CancellationToken cancellationToken)
-    {
-        var courses = await courseService.GetInstructorCoursesAsync(cancellationToken);
-        return Ok(mapper.Map<IReadOnlyCollection<CourseDetailsDto>>(courses));
+        if (course is not null)
+        {
+            course.Modules = course.Modules.OrderBy(m => m.Order).ToList();
+            foreach (var module in course.Modules)
+            {
+                module.Lessons = module.Lessons.OrderBy(l => l.Order).ToList();
+            }
+        }
+
+        return course is null ? NotFound() : Ok(course);
     }
 
     [HttpPost]
     [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
-    public async Task<ActionResult<CourseDetailsDto>> CreateCourse(UpsertCourseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Course>> CreateCourse(CreateCourseRequest request)
     {
-        var course = await courseService.CreateCourseAsync(request, cancellationToken);
-        return CreatedAtAction(nameof(GetCourse), new { id = course.Id }, mapper.Map<CourseDetailsDto>(course));
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var course = new Course
+        {
+            Title = request.Title,
+            Description = request.Description,
+            ThumbnailUrl = request.ThumbnailUrl,
+            Category = request.Category,
+            Level = request.Level,
+            Price = request.Price,
+            InstructorId = userId.Value,
+            IsPublished = false
+        };
+
+        dbContext.Courses.Add(course);
+        await dbContext.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetCourse), new { id = course.Id }, course);
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
-    public async Task<ActionResult<CourseDetailsDto>> UpdateCourse(Guid id, UpsertCourseRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Course>> UpdateCourse(Guid id, UpdateCourseRequest request)
     {
-        var course = await courseService.UpdateCourseAsync(id, request, cancellationToken);
-        return Ok(mapper.Map<CourseDetailsDto>(course));
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        course.Title = request.Title;
+        course.Description = request.Description;
+        course.ThumbnailUrl = request.ThumbnailUrl;
+        course.Category = request.Category;
+        course.Level = request.Level;
+        course.Price = request.Price;
+        course.IsPublished = request.IsPublished;
+        course.UpdatedAt = DateTime.UtcNow;
+
+        await dbContext.SaveChangesAsync();
+        return Ok(course);
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = nameof(UserRole.Admin))]
-    public async Task<IActionResult> DeleteCourse(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> DeleteCourse(Guid id)
     {
-        await courseService.DeleteCourseAsync(id, cancellationToken);
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        dbContext.Courses.Remove(course);
+        await dbContext.SaveChangesAsync();
         return NoContent();
     }
 
     [HttpPost("{id:guid}/publish")]
     [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
-    public async Task<ActionResult<CourseDetailsDto>> SetPublishState(Guid id, PublishCourseRequest? request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Course>> Publish(Guid id)
     {
-        var course = await courseService.SetPublishStateAsync(id, request?.IsPublished, cancellationToken);
-        return Ok(mapper.Map<CourseDetailsDto>(course));
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        course.IsPublished = true;
+        course.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync();
+        return Ok(course);
     }
 
     [HttpGet("{courseId:guid}/reviews")]
     [AllowAnonymous]
-    public async Task<ActionResult<IReadOnlyCollection<ReviewDto>>> GetReviews(Guid courseId, CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyCollection<Review>>> GetReviews(Guid courseId)
     {
-        var reviews = await reviewService.GetCourseReviewsAsync(courseId, cancellationToken);
-        return Ok(mapper.Map<IReadOnlyCollection<ReviewDto>>(reviews));
+        var reviews = await dbContext.Reviews
+            .Where(x => x.CourseId == courseId)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync();
+
+        return Ok(reviews);
     }
 
     [HttpPost("{courseId:guid}/reviews")]
     [Authorize]
-    public async Task<ActionResult<ReviewDto>> AddReview(Guid courseId, CreateReviewRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult<Review>> CreateReview(Guid courseId, CreateReviewRequest request)
     {
-        var review = await reviewService.AddReviewAsync(courseId, request, cancellationToken);
-        return Ok(mapper.Map<ReviewDto>(review));
+        var userId = User.GetUserId();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
+
+        var exists = await dbContext.Courses.AnyAsync(x => x.Id == courseId);
+        if (!exists)
+        {
+            return NotFound(new { message = "Course not found." });
+        }
+
+        var review = new Review
+        {
+            CourseId = courseId,
+            UserId = userId.Value,
+            Rating = request.Rating,
+            Comment = request.Comment
+        };
+
+        dbContext.Reviews.Add(review);
+        await dbContext.SaveChangesAsync();
+        return Ok(review);
     }
 }

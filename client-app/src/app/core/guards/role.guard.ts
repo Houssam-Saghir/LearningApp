@@ -1,10 +1,17 @@
-import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
-import { UserRole } from '../models/app.models';
 
-export const roleGuard = (roles: UserRole[]): CanActivateFn => () => {
-  const authService = inject(AuthService);
+export const roleGuard: CanActivateFn = (route) => {
+  const auth = inject(AuthService);
   const router = inject(Router);
-  return authService.hasRole(roles) ? true : router.createUrlTree(['/dashboard']);
+  const allowedRoles = route.data['roles'] as string[] | undefined;
+  const user = auth.currentUser();
+
+  if (!user || (allowedRoles && !allowedRoles.includes(user.role))) {
+    router.navigate(['/']);
+    return false;
+  }
+
+  return true;
 };

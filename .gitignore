@@ -1,21 +1,30 @@
-# .NET
+# Build artifacts
 bin/
 obj/
-.vs/
+out/
+wwwroot/
+
+# .NET local files
 *.user
+*.suo
+*.pdb
 *.db
+*.sqlite
+*.sqlite3
+
+# Node/Angular
+client-app/node_modules/
+client-app/dist/
+client-app/.angular/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
 *.db-shm
 *.db-wal
-
-# Angular
-client-app/node_modules/
-client-app/.angular/
-client-app/dist/
-client-app/coverage/
-
-# Generated SPA assets
-src/LearningApp.API/wwwroot/*
-!src/LearningApp.API/wwwroot/.gitkeep
-
-# IDE
-client-app/.vscode/
