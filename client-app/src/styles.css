@@ -1,0 +1,149 @@
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+
+:root {
+  color-scheme: light;
+  --app-bg: #f8fafc;
+  --app-surface: #ffffff;
+  --app-surface-alt: #eef2ff;
+  --app-border: rgba(30, 58, 95, 0.12);
+  --app-primary: #1e3a5f;
+  --app-primary-soft: rgba(30, 58, 95, 0.08);
+  --app-accent: #f97316;
+  --app-accent-soft: rgba(249, 115, 22, 0.12);
+  --app-text: #172033;
+  --app-text-muted: #5b6474;
+  --app-shadow: 0 20px 45px rgba(15, 23, 42, 0.08);
+}
+
+html.dark-mode {
+  color-scheme: dark;
+  --app-bg: #0f172a;
+  --app-surface: #111c31;
+  --app-surface-alt: #17233b;
+  --app-border: rgba(148, 163, 184, 0.16);
+  --app-primary: #93c5fd;
+  --app-primary-soft: rgba(147, 197, 253, 0.14);
+  --app-accent: #fb923c;
+  --app-accent-soft: rgba(251, 146, 60, 0.16);
+  --app-text: #e2e8f0;
+  --app-text-muted: #94a3b8;
+  --app-shadow: 0 20px 45px rgba(2, 6, 23, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Inter', sans-serif;
+  background: var(--app-bg);
+  color: var(--app-text);
+  scroll-behavior: smooth;
+}
+
+body {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button, input, textarea, select {
+  font: inherit;
+}
+
+.page-shell {
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0 auto;
+}
+
+.section-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 24px;
+  box-shadow: var(--app-shadow);
+}
+
+.page-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero-panel {
+  background: linear-gradient(135deg, rgba(30, 58, 95, 0.98), rgba(13, 148, 136, 0.92));
+  color: white;
+  padding: 2rem;
+  border-radius: 28px;
+  box-shadow: var(--app-shadow);
+}
+
+.muted {
+  color: var(--app-text-muted);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: var(--app-primary-soft);
+  color: var(--app-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.stats-grid,
+.course-grid,
+.simple-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.stats-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.course-grid {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.simple-grid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.info-card {
+  padding: 1.25rem;
+  border-radius: 22px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+}
+
+.empty-state {
+  padding: 2rem;
+  border: 1px dashed var(--app-border);
+  border-radius: 22px;
+  text-align: center;
+  color: var(--app-text-muted);
+  background: var(--app-surface);
+}
+
+.form-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid.two-up {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
