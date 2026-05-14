@@ -10,7 +10,7 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly storageKey = 'learningapp.auth';
-  private readonly userSubject = new BehaviorSubject<User | null>(this.readStoredUser());
+  private readonly userSubject = new BehaviorSubject<User | null>(null);
 
   readonly currentUser$ = this.userSubject.asObservable();
   readonly isAuthenticated$ = this.currentUser$.pipe(map((user) => !!user));
@@ -88,11 +88,6 @@ export class AuthService {
     localStorage.removeItem(this.storageKey);
     this.userSubject.next(null);
   }
-
-  private readStoredUser(): User | null {
-    return this.readStoredSession()?.user ?? null;
-  }
-
   private readStoredSession(): AuthResponse | null {
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) {

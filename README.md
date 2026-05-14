@@ -35,8 +35,8 @@ LearningApp/
 ### 1. Run the API
 
 ```bash
-dotnet restore /home/runner/work/LearningApp/LearningApp/LearningApp.sln
-dotnet run --project /home/runner/work/LearningApp/LearningApp/src/LearningApp.API
+dotnet restore LearningApp.sln
+dotnet run --project src/LearningApp.API
 ```
 
 The API runs on:
@@ -47,7 +47,7 @@ The API runs on:
 ### 2. Run the Angular client
 
 ```bash
-cd /home/runner/work/LearningApp/LearningApp/client-app
+cd client-app
 npm install
 npm start
 ```
@@ -59,10 +59,10 @@ The Angular dev server runs on `http://localhost:4200` and proxies `/api` reques
 Build the Angular app into the API `wwwroot` folder, then run the API:
 
 ```bash
-cd /home/runner/work/LearningApp/LearningApp/client-app
+cd client-app
 npm run build
 
-dotnet run --project /home/runner/work/LearningApp/LearningApp/src/LearningApp.API
+dotnet run --project src/LearningApp.API
 ```
 
 ## API documentation

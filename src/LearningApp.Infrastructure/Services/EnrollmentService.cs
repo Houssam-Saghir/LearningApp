@@ -71,7 +71,14 @@ public sealed class EnrollmentService(LearningAppDbContext dbContext, ICurrentUs
 
         var completedLessons = completedLessonIds.Count;
         enrollment.Progress = totalLessons == 0 ? 0 : (int)Math.Round((completedLessons / (double)totalLessons) * 100, MidpointRounding.AwayFromZero);
-        enrollment.CompletedAt = completedLessons == totalLessons && totalLessons > 0 ? DateTime.UtcNow : null;
+        if (completedLessons == totalLessons && totalLessons > 0)
+        {
+            enrollment.CompletedAt ??= DateTime.UtcNow;
+        }
+        else
+        {
+            enrollment.CompletedAt = null;
+        }
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new CourseProgressDto
