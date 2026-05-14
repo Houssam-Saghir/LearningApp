@@ -55,6 +55,8 @@ dotnet publish src/LearningApp.API/LearningApp.API.csproj -c Release
 
 This runs Angular production build and copies files to API `wwwroot`.
 
+For production, set a secure JWT key via configuration (for example environment variable `Jwt__Key`).
+
 ## Default Seed Credentials
 
 - **Admin**: `admin@learningapp.com` / `Admin@123`
