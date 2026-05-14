@@ -26,4 +26,20 @@ export class CourseService {
   getReviews(courseId: string): Observable<Review[]> {
     return this.http.get<Review[]>(`${environment.apiUrl}/api/courses/${courseId}/reviews`);
   }
+
+  createCourse(payload: Omit<Course, 'id' | 'isPublished'>): Observable<Course> {
+    return this.http.post<Course>(`${environment.apiUrl}/api/courses`, payload);
+  }
+
+  updateCourse(id: string, payload: Omit<Course, 'id'>): Observable<Course> {
+    return this.http.put<Course>(`${environment.apiUrl}/api/courses/${id}`, payload);
+  }
+
+  deleteCourse(id: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/api/courses/${id}`);
+  }
+
+  publishCourse(id: string): Observable<Course> {
+    return this.http.post<Course>(`${environment.apiUrl}/api/courses/${id}/publish`, {});
+  }
 }

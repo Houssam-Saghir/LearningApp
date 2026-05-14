@@ -20,6 +20,7 @@ client-app/.angular/
 # IDEs
 .vscode/
 .idea/
+.vs/
 *.swp
 
 # OS

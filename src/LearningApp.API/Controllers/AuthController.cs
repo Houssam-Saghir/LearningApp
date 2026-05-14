@@ -28,7 +28,7 @@ public class AuthController(AppDbContext dbContext, JwtTokenService jwtTokenServ
             LastName = request.LastName,
             Email = request.Email.ToLowerInvariant(),
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Role = UserRole.Student
+            Role = request.Role
         };
 
         dbContext.Users.Add(user);

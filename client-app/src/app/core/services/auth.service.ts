@@ -16,7 +16,7 @@ export class AuthService {
     );
   }
 
-  register(payload: { firstName: string; lastName: string; email: string; password: string }): Observable<User> {
+  register(payload: { firstName: string; lastName: string; email: string; password: string; role?: string }): Observable<User> {
     return this.http.post<User>(`${environment.apiUrl}/api/auth/register`, payload).pipe(
       tap(user => this.setUser(user))
     );
