@@ -2,7 +2,6 @@ import { AsyncPipe, CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -10,7 +9,7 @@ import { ThemeService } from '../../core/services/theme.service';
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, MatToolbarModule, MatButtonModule, MatIconModule],
+  imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, MatToolbarModule, MatButtonModule],
   template: `
     <mat-toolbar class="toolbar">
       <div class="page-shell toolbar-inner">
@@ -30,9 +29,7 @@ import { ThemeService } from '../../core/services/theme.service';
         </nav>
 
         <div class="nav-actions">
-          <button mat-icon-button type="button" (click)="themeService.toggle()" aria-label="Toggle dark mode">
-            <mat-icon>{{ themeService.darkMode() ? 'dark_mode' : 'light_mode' }}</mat-icon>
-          </button>
+          <button mat-button type="button" (click)="themeService.toggle()">{{ themeService.darkMode() ? 'Light mode' : 'Dark mode' }}</button>
 
           <ng-container *ngIf="authService.currentUser$ | async as user; else guestActions">
             <a mat-button routerLink="/profile">{{ user.firstName }}</a>

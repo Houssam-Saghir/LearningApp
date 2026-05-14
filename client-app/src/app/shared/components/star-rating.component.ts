@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-star-rating',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule],
   template: `
     <div class="stars">
-      <mat-icon *ngFor="let star of stars; let index = index">{{ index < filledStars ? 'star' : 'star_outline' }}</mat-icon>
+      <span class="star" *ngFor="let star of stars; let index = index">{{ index < filledStars ? '★' : '☆' }}</span>
       <span>{{ rating | number: '1.1-1' }}</span>
     </div>
   `,
@@ -26,7 +25,7 @@ import { MatIconModule } from '@angular/material/icon';
       color: var(--app-text-muted);
     }
 
-    mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+    .star { font-size: 1rem; line-height: 1; }
   `]
 })
 export class StarRatingComponent {

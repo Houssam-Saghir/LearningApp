@@ -33,7 +33,7 @@ import { ProgressBarComponent } from '../../shared/components/progress-bar.compo
                   <span>{{ item.title }}</span>
                   <small class="muted">{{ item.lessonType }} · {{ item.duration | duration }}</small>
                 </div>
-                <mat-icon *ngIf="isCompleted(item.id)">check_circle</mat-icon>
+                <span *ngIf="isCompleted(item.id)">✓</span>
               </a>
             </div>
           </div>

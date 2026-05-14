@@ -16,12 +16,11 @@ import { CourseService } from '../../core/services/course.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { DurationPipe } from '../../shared/pipes/duration.pipe';
-import { ProgressBarComponent } from '../../shared/components/progress-bar.component';
 import { StarRatingComponent } from '../../shared/components/star-rating.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, CurrencyPipe, DatePipe, MatButtonModule, MatCardModule, MatExpansionModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, DurationPipe, ProgressBarComponent, StarRatingComponent],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, CurrencyPipe, DatePipe, MatButtonModule, MatCardModule, MatExpansionModule, MatFormFieldModule, MatIconModule, MatInputModule, MatSelectModule, DurationPipe, StarRatingComponent],
   template: `
     <div class="page-shell page-grid" *ngIf="course as currentCourse">
       <section class="hero-panel detail-hero">
@@ -64,7 +63,7 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
                   <strong>{{ lesson.order }}. {{ lesson.title }}</strong>
                   <div class="muted">{{ lesson.lessonType }} · {{ lesson.duration | duration }}</div>
                 </div>
-                <mat-icon>{{ lesson.lessonType === 'Video' ? 'play_circle' : (lesson.lessonType === 'Quiz' ? 'quiz' : 'article') }}</mat-icon>
+                <span class="muted">{{ lesson.lessonType === 'Video' ? '▶' : (lesson.lessonType === 'Quiz' ? '?' : '•') }}</span>
               </div>
             </mat-expansion-panel>
           </mat-accordion>
@@ -189,18 +188,19 @@ export class CourseDetailComponent implements OnInit {
       return;
     }
 
-    this.enrollmentService.enroll(this.course.id).subscribe({
+    const currentCourse = this.course;
+    this.enrollmentService.enroll(currentCourse.id).subscribe({
       next: () => {
-        const firstLesson = this.course?.modules.flatMap((module) => module.lessons).sort((a, b) => a.order - b.order)[0];
+        const firstLesson = currentCourse.modules.flatMap((module) => module.lessons).sort((a, b) => a.order - b.order)[0];
         this.notificationService.success('Enrollment successful. Welcome aboard!');
         if (firstLesson) {
-          this.router.navigate(['/learn', this.course.id, 'lesson', firstLesson.id]);
+          this.router.navigate(['/learn', currentCourse.id, 'lesson', firstLesson.id]);
         }
       },
       error: () => {
-        const firstLesson = this.course?.modules.flatMap((module) => module.lessons).sort((a, b) => a.order - b.order)[0];
+        const firstLesson = currentCourse.modules.flatMap((module) => module.lessons).sort((a, b) => a.order - b.order)[0];
         if (firstLesson) {
-          this.router.navigate(['/learn', this.course!.id, 'lesson', firstLesson.id]);
+          this.router.navigate(['/learn', currentCourse.id, 'lesson', firstLesson.id]);
         }
       }
     });

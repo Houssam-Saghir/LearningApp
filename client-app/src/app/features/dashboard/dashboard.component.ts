@@ -1,4 +1,4 @@
-import { AsyncPipe, CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -12,7 +12,7 @@ import { ProgressBarComponent } from '../../shared/components/progress-bar.compo
 
 @Component({
   standalone: true,
-  imports: [CommonModule, AsyncPipe, CurrencyPipe, MatButtonModule, MatCardModule, ProgressBarComponent],
+  imports: [CommonModule, CurrencyPipe, MatButtonModule, MatCardModule, ProgressBarComponent],
   template: `
     <div class="page-shell page-grid">
       <section class="hero-panel">

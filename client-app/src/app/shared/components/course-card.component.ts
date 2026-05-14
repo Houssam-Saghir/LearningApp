@@ -1,10 +1,9 @@
-import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 import { CourseSummary } from '../../core/models/app.models';
 import { TruncatePipe } from '../pipes/truncate.pipe';
 import { StarRatingComponent } from './star-rating.component';
@@ -12,7 +11,7 @@ import { StarRatingComponent } from './star-rating.component';
 @Component({
   selector: 'app-course-card',
   standalone: true,
-  imports: [CommonModule, RouterLink, CurrencyPipe, DatePipe, MatButtonModule, MatCardModule, MatChipsModule, MatIconModule, TruncatePipe, StarRatingComponent],
+  imports: [CommonModule, RouterLink, CurrencyPipe, MatButtonModule, MatCardModule, MatChipsModule, TruncatePipe, StarRatingComponent],
   template: `
     <mat-card class="course-card">
       <img mat-card-image [src]="course.thumbnailUrl" [alt]="course.title">
@@ -24,8 +23,8 @@ import { StarRatingComponent } from './star-rating.component';
         <h3>{{ course.title }}</h3>
         <p class="muted">{{ course.description | truncate: 110 }}</p>
         <div class="detail-row muted">
-          <span><mat-icon>school</mat-icon>{{ course.instructorName }}</span>
-          <span><mat-icon>groups</mat-icon>{{ course.enrollmentCount }}</span>
+          <span>Instructor: {{ course.instructorName }}</span>
+          <span>Students: {{ course.enrollmentCount }}</span>
         </div>
         <div class="detail-row">
           <app-star-rating [rating]="course.rating"></app-star-rating>
@@ -59,7 +58,6 @@ import { StarRatingComponent } from './star-rating.component';
     }
     .detail-row { margin-top: 0.75rem; }
     .detail-row span { display: inline-flex; align-items: center; gap: 0.25rem; }
-    mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
   `]
 })
 export class CourseCardComponent {

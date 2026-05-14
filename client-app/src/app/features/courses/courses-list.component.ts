@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { CourseQuery, CourseSummary, PagedResult } from '../../core/models/app.models';
+import { CourseLevel, CourseQuery, CourseSummary, PagedResult } from '../../core/models/app.models';
 import { CourseService } from '../../core/services/course.service';
 import { CourseCardComponent } from '../../shared/components/course-card.component';
 import { SkeletonLoaderComponent } from '../../shared/components/skeleton-loader.component';
@@ -134,8 +134,12 @@ export class CoursesListComponent implements OnInit {
 
   private loadCourses(): void {
     this.isLoading = true;
+    const rawValue = this.filters.getRawValue();
     const query: CourseQuery = {
-      ...this.filters.getRawValue(),
+      search: rawValue.search ?? undefined,
+      category: rawValue.category ?? undefined,
+      level: (rawValue.level as CourseLevel | '' | null) ?? undefined,
+      maxPrice: rawValue.maxPrice ?? undefined,
       page: this.currentPage,
       pageSize: 6
     };
