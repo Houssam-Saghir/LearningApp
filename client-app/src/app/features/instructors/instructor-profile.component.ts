@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { Course, Instructor } from '../../core/models/models';
 import { InstructorService } from '../../core/services/instructor.service';
-import { CourseService } from '../../core/services/course.service';
 
 @Component({
   standalone: true,
@@ -43,8 +42,7 @@ export class InstructorProfileComponent implements OnInit {
 
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly instructorService: InstructorService,
-    private readonly courseService: CourseService
+    private readonly instructorService: InstructorService
   ) {}
 
   ngOnInit(): void {
@@ -55,8 +53,8 @@ export class InstructorProfileComponent implements OnInit {
       this.instructor = instructor;
     });
 
-    this.courseService.getCourses({ page: 1, pageSize: 100 }).subscribe(result => {
-      this.courses = result.items.filter(course => course.instructorId === instructorId && course.isPublished);
+    this.instructorService.getPublishedCourses(instructorId).subscribe(courses => {
+      this.courses = courses;
     });
   }
 }

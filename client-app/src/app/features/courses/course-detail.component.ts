@@ -1,13 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { CourseService } from '../../core/services/course.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Course, Review } from '../../core/models/models';
 import { StarRatingComponent } from '../../shared/components/star-rating.component';
-import { FormGroup, FormControl } from '@angular/forms';
 
 @Component({
   standalone: true,
@@ -77,7 +76,7 @@ import { FormGroup, FormControl } from '@angular/forms';
 
             <div class="review-item" *ngFor="let review of reviews">
               <div class="review-head">
-                <strong>{{ review.userName || ('User ' + review.userId.slice(0, 8)) }}</strong>
+                <strong>{{ getReviewAuthorName(review) }}</strong>
                 <span class="muted">{{ review.createdAt | date:'mediumDate' }}</span>
               </div>
               <app-star-rating [rating]="review.rating" />
@@ -229,9 +228,13 @@ export class CourseDetailComponent implements OnInit {
     }
 
     const value = this.reviewForm.getRawValue();
+    if (value.rating === null) {
+      this.reviewForm.markAllAsTouched();
+      return;
+    }
     this.submittingReview = true;
 
-    this.courses.createReview(courseId, { rating: Number(value.rating), comment: value.comment ?? '' }).subscribe({
+    this.courses.createReview(courseId, { rating: value.rating, comment: value.comment ?? '' }).subscribe({
       next: review => {
         const currentUser = this.authService.currentUser();
         this.reviews = [{
@@ -266,5 +269,9 @@ export class CourseDetailComponent implements OnInit {
 
   initials(firstName: string, lastName: string): string {
     return `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+  }
+
+  getReviewAuthorName(review: Review): string {
+    return review.userName || `User ${review.userId.slice(0, 8)}`;
   }
 }

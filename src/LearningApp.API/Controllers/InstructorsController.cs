@@ -28,4 +28,36 @@ public class InstructorsController(AppDbContext dbContext) : ControllerBase
 
         return instructor is null ? NotFound() : Ok(instructor);
     }
+
+    [HttpGet("{id:guid}/courses")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IReadOnlyCollection<object>>> GetPublishedCourses(Guid id)
+    {
+        var isInstructor = await dbContext.Users.AnyAsync(u => u.Id == id && u.Role == UserRole.Instructor);
+        if (!isInstructor)
+        {
+            return NotFound();
+        }
+
+        var courses = await dbContext.Courses
+            .Where(c => c.InstructorId == id && c.IsPublished)
+            .OrderByDescending(c => c.CreatedAt)
+            .Select(c => new
+            {
+                c.Id,
+                c.Title,
+                c.Description,
+                c.ThumbnailUrl,
+                c.Category,
+                c.Level,
+                c.Price,
+                c.IsPublished,
+                c.InstructorId,
+                c.CreatedAt,
+                c.UpdatedAt
+            })
+            .ToListAsync();
+
+        return Ok(courses);
+    }
 }
