@@ -1,12 +1,15 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CourseService } from '../../../core/services/course.service';
+import { InstructorService, InstructorSummary } from '../../../core/services/instructor.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Course, CourseLevel } from '../../../core/models/models';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   template: `
     <div class="page">
       <div class="page-header">
@@ -51,6 +54,12 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </td>
               <td>
                 <div class="actions">
+                  <a class="btn-icon btn-content" [routerLink]="['/instructor/courses', course.id, 'content']" title="Manage Content">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                  </a>
                   <button class="btn-icon btn-edit" (click)="openEdit(course)" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -147,6 +156,14 @@ import { Course, CourseLevel } from '../../../core/models/models';
                 <label>Thumbnail URL</label>
                 <input formControlName="thumbnailUrl" placeholder="https://..." />
               </div>
+            </div>
+
+            <div class="form-group" *ngIf="isAdmin()">
+              <label>Instructor</label>
+              <select formControlName="instructorId">
+                <option value="">— Select an instructor —</option>
+                <option *ngFor="let i of instructors()" [value]="i.id">{{ i.firstName }} {{ i.lastName }} ({{ i.email }})</option>
+              </select>
             </div>
 
             <div class="modal-actions">
@@ -339,6 +356,19 @@ import { Course, CourseLevel } from '../../../core/models/models';
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
+    }
+
+    .btn-content {
+      background: #f5f3ff;
+      color: #7c3aed;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+    }
+
+    .btn-content:hover {
+      background: #ede9fe;
     }
 
     .btn-edit {
@@ -544,15 +574,20 @@ import { Course, CourseLevel } from '../../../core/models/models';
     }
   `]
 })
-export class CourseManagementComponent {
+export class CourseManagementComponent implements OnInit {
   private readonly courseService = inject(CourseService);
+  private readonly instructorService = inject(InstructorService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
   courses = signal<Course[]>([]);
+  instructors = signal<InstructorSummary[]>([]);
   isLoading = signal(true);
   showModal = signal(false);
   isSaving = signal(false);
   editingCourse = signal<Course | null>(null);
+
+  isAdmin = computed(() => this.auth.currentUser()?.role === 'Admin');
 
   form = this.fb.group({
     title: ['', Validators.required],
@@ -560,11 +595,15 @@ export class CourseManagementComponent {
     category: ['', Validators.required],
     level: ['Beginner' as CourseLevel, Validators.required],
     price: [0, [Validators.required, Validators.min(0)]],
-    thumbnailUrl: ['']
+    thumbnailUrl: [''],
+    instructorId: ['']
   });
 
-  constructor() {
+  ngOnInit(): void {
     this.load();
+    if (this.isAdmin()) {
+      this.instructorService.getAllInstructors().subscribe(list => this.instructors.set(list));
+    }
   }
 
   private load(): void {
@@ -577,7 +616,7 @@ export class CourseManagementComponent {
 
   openCreate(): void {
     this.editingCourse.set(null);
-    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', price: 0, thumbnailUrl: '' });
+    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', price: 0, thumbnailUrl: '', instructorId: '' });
     this.showModal.set(true);
   }
 
@@ -589,7 +628,8 @@ export class CourseManagementComponent {
       category: course.category,
       level: course.level,
       price: course.price,
-      thumbnailUrl: course.thumbnailUrl
+      thumbnailUrl: course.thumbnailUrl,
+      instructorId: course.instructorId ?? ''
     });
     this.showModal.set(true);
   }
@@ -620,13 +660,27 @@ export class CourseManagementComponent {
 
     req$.subscribe({
       next: (saved) => {
-        if (editing) {
-          this.courses.update(list => list.map(c => c.id === saved.id ? saved : c));
+        const newInstructorId = val.instructorId;
+        if (this.isAdmin() && newInstructorId && newInstructorId !== saved.instructorId) {
+          this.courseService.assignInstructor(saved.id, newInstructorId).subscribe({
+            next: (updated) => {
+              this.courses.update(list => editing
+                ? list.map(c => c.id === updated.id ? updated : c)
+                : [updated, ...list]);
+              this.isSaving.set(false);
+              this.closeModal();
+            },
+            error: () => this.isSaving.set(false)
+          });
         } else {
-          this.courses.update(list => [saved, ...list]);
+          if (editing) {
+            this.courses.update(list => list.map(c => c.id === saved.id ? saved : c));
+          } else {
+            this.courses.update(list => [saved, ...list]);
+          }
+          this.isSaving.set(false);
+          this.closeModal();
         }
-        this.isSaving.set(false);
-        this.closeModal();
       },
       error: () => this.isSaving.set(false)
     });

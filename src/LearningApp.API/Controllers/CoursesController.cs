@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LearningApp.API.Controllers;
 
+public record AssignInstructorRequest(Guid InstructorId);
+
 [ApiController]
 [Route("api/courses")]
 public class CoursesController(AppDbContext dbContext) : ControllerBase
@@ -145,6 +147,23 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
         }
 
         course.IsPublished = true;
+        course.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync();
+        return Ok(course);
+    }
+
+    [HttpPut("{id:guid}/assign-instructor")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
+    public async Task<ActionResult<Course>> AssignInstructor(Guid id, [FromBody] AssignInstructorRequest request)
+    {
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null) return NotFound();
+
+        var instructor = await dbContext.Users.FindAsync(request.InstructorId);
+        if (instructor is null || instructor.Role != UserRole.Instructor)
+            return BadRequest(new { message = "User is not a valid instructor." });
+
+        course.InstructorId = request.InstructorId;
         course.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync();
         return Ok(course);

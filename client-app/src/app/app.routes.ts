@@ -15,5 +15,7 @@ export const routes: Routes = [
   { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./features/profile/profile.component').then(m => m.ProfileComponent) },
   { path: 'instructor/dashboard', canActivate: [authGuard, roleGuard], data: { roles: ['Instructor', 'Admin'] }, loadComponent: () => import('./features/instructor/dashboard/instructor-dashboard.component').then(m => m.InstructorDashboardComponent) },
   { path: 'instructor/courses', canActivate: [authGuard, roleGuard], data: { roles: ['Instructor', 'Admin'] }, loadComponent: () => import('./features/instructor/courses/course-management.component').then(m => m.CourseManagementComponent) },
+  { path: 'instructor/courses/:courseId/content', canActivate: [authGuard, roleGuard], data: { roles: ['Instructor', 'Admin'] }, loadComponent: () => import('./features/instructor/courses/course-content.component').then(m => m.CourseContentComponent) },
+  { path: 'admin/instructors', canActivate: [authGuard, roleGuard], data: { roles: ['Admin'] }, loadComponent: () => import('./features/instructors/manage-instructors.component').then(m => m.ManageInstructorsComponent) },
   { path: '**', redirectTo: '' }
 ];

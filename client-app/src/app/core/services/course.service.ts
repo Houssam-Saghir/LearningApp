@@ -49,4 +49,8 @@ export class CourseService {
   publishCourse(id: string): Observable<Course> {
     return this.http.post<Course>(`${environment.apiUrl}/api/courses/${id}/publish`, {});
   }
+
+  assignInstructor(courseId: string, instructorId: string): Observable<Course> {
+    return this.http.put<Course>(`${environment.apiUrl}/api/courses/${courseId}/assign-instructor`, { instructorId });
+  }
 }

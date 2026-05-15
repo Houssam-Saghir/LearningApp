@@ -55,6 +55,7 @@ export interface Module {
   id: string;
   courseId: string;
   title: string;
+  description: string;
   order: number;
   lessons: Lesson[];
 }
@@ -65,5 +66,7 @@ export interface Lesson {
   title: string;
   content: string;
   videoUrl: string;
+  duration: number;
   order: number;
+  lessonType: 'Video' | 'Article' | 'Quiz';
 }

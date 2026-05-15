@@ -100,6 +100,21 @@ import { AuthService } from '../../core/services/auth.service';
           </a>
         </div>
 
+        <!-- Admin Navigation -->
+        <div class="nav-section" *ngIf="isAdmin()">
+          <div class="section-label" *ngIf="!isCollapsed">Admin</div>
+
+          <a routerLink="/admin/instructors" routerLinkActive="active" class="nav-item">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span class="nav-text" *ngIf="!isCollapsed">Manage Instructors</span>
+          </a>
+        </div>
+
         <!-- Auth Navigation -->
         <div class="nav-section" *ngIf="!isAuthenticated()">
           <div class="section-label" *ngIf="!isCollapsed">Account</div>
@@ -383,6 +398,8 @@ export class SidebarComponent {
     const user = this.currentUser();
     return user?.role === 'Instructor' || user?.role === 'Admin';
   });
+
+  isAdmin = computed(() => this.currentUser()?.role === 'Admin');
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
