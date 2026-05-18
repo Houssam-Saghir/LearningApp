@@ -14,7 +14,7 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
   template: `
     <div class="course-detail" *ngIf="course as c">
       <section class="hero card">
-        <img class="hero-image" [src]="c.thumbnailUrl || fallbackImage" [alt]="c.title" />
+        <img class="hero-image" [src]="c.thumbnailUrl || fallbackImage" [alt]="c.title" (error)="onImageError($event)" />
         <div class="hero-content">
           <div class="meta-row">
             <span class="badge">{{ c.level }}</span>
@@ -153,7 +153,7 @@ export class CourseDetailComponent implements OnInit {
   course?: Course;
   reviews: Review[] = [];
   readonly stars = [1, 2, 3, 4, 5];
-  readonly fallbackImage = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80';
+  readonly fallbackImage = '/assets/default-thumbnail.svg';
 
   isAuthenticated = false;
   isEnrolled = false;
@@ -216,6 +216,13 @@ export class CourseDetailComponent implements OnInit {
 
   setRating(rating: number): void {
     this.reviewForm.patchValue({ rating });
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img && !img.src.endsWith(this.fallbackImage)) {
+      img.src = this.fallbackImage;
+    }
   }
 
   submitReview(): void {
