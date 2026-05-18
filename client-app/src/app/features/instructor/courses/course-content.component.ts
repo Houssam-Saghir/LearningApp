@@ -24,12 +24,20 @@ type ModalMode = 'module' | 'lesson';
             <h1>Course Content</h1>
             <p class="subtitle">Manage modules and lessons.</p>
           </div>
-          <button class="btn btn-primary" (click)="openAddModule()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Add Module
-          </button>
+          <div class="header-actions">
+            <a [routerLink]="['/instructor/courses', courseId, 'quizzes']" class="btn btn-secondary">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              Manage Quizzes
+            </a>
+            <button class="btn btn-primary" (click)="openAddModule()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Add Module
+            </button>
+          </div>
         </div>
       </div>
 
@@ -213,6 +221,7 @@ type ModalMode = 'module' | 'lesson';
     .back-link { display: inline-flex; align-items: center; gap: .375rem; color: #64748b; text-decoration: none; font-size: .875rem; font-weight: 500; }
     .back-link:hover { color: #1e293b; }
     .header-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .header-actions { display: flex; gap: .625rem; align-items: center; }
     h1 { font-size: 1.75rem; font-weight: 700; color: #0f172a; margin: 0; }
     .subtitle { color: #64748b; margin: .25rem 0 0; }
     .loading, .empty { text-align: center; color: #64748b; padding: 2rem; }

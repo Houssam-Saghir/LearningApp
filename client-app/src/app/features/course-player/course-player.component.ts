@@ -1,11 +1,12 @@
 import { Component, OnInit, inject, signal, computed, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { forkJoin } from 'rxjs';
 import { ContentService } from '../../core/services/content.service';
-import { Module, Lesson } from '../../core/models/models';
-import { environment } from '../../../environments/environment';
 import { QuizService } from '../../core/services/quiz.service';
+import { Module, Lesson, QuizStatus } from '../../core/models/models';
+import { environment } from '../../../environments/environment';
 
 interface LessonProgress { [lessonId: string]: boolean; }
 
@@ -23,7 +24,9 @@ interface LessonProgress { [lessonId: string]: boolean; }
           </a>
           <h2 class="curriculum-label">Curriculum</h2>
         </div>
+
         <div class="curriculum" *ngIf="!isLoading()">
+          <!-- Modules -->
           <div class="module-section" *ngFor="let m of modules()">
             <button class="module-toggle" (click)="toggleModule(m.id)">
               <span class="module-name">{{ m.order }}. {{ m.title }}</span>
@@ -42,23 +45,84 @@ interface LessonProgress { [lessonId: string]: boolean; }
                   <svg *ngIf="!lessonProgress()[l.id]" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
                 </span>
                 <span class="lesson-item-title">{{ l.title }}</span>
-                <span class="type-dot" [class]="'dot-' + l.lessonType.toLowerCase()" [title]="l.lessonType"></span>
+                <span class="type-dot" [class]="'dot-' + l.lessonType.toLowerCase()"></span>
                 <span class="lesson-dur" *ngIf="l.duration">{{ l.duration }}m</span>
               </button>
             </div>
           </div>
+
+          <!-- Quizzes section -->
+          <div class="quiz-section" *ngIf="quizStatus() as qs">
+            <ng-container *ngIf="qs.hasQuizzes">
+              <div class="quiz-section-label">
+                <span>Quizzes</span>
+                <span class="quiz-required-badge" *ngIf="!qs.allPassed && allLessonsDone()">Required</span>
+              </div>
+              <a *ngFor="let quiz of qs.quizzes"
+                class="lesson-item quiz-item"
+                [class.quiz-passed]="quiz.passed"
+                [class.quiz-pending]="!quiz.passed && allLessonsDone()"
+                [routerLink]="['/courses', courseId, 'quizzes', quiz.quizId]">
+                <span class="lesson-check">
+                  <svg *ngIf="quiz.passed" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg *ngIf="!quiz.passed" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+                </span>
+                <span class="lesson-item-title">{{ quiz.title }}</span>
+                <span class="type-dot dot-quiz"></span>
+                <span class="quiz-score" *ngIf="quiz.passed && quiz.bestScore !== null">{{ quiz.bestScore }}%</span>
+              </a>
+            </ng-container>
+          </div>
         </div>
         <div class="sidebar-loading" *ngIf="isLoading()">Loading...</div>
+
         <div class="sidebar-footer" *ngIf="!isLoading() && totalLessons() > 0">
           <div class="sidebar-progress-label"><span>Progress</span><span>{{ progressPercent() }}%</span></div>
           <div class="sidebar-progress-track"><div class="sidebar-progress-fill" [style.width.%]="progressPercent()"></div></div>
           <div class="sidebar-progress-sub">{{ completedCount() }} / {{ totalLessons() }} lessons</div>
+          <div class="sidebar-quiz-status" *ngIf="quizStatus()?.hasQuizzes">
+            <span [class.status-done]="quizStatus()?.allPassed" [class.status-pending]="!quizStatus()?.allPassed">
+              <svg *ngIf="quizStatus()?.allPassed" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg *ngIf="!quizStatus()?.allPassed" xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+              Quiz {{ quizStatus()?.allPassed ? 'Passed' : 'Required' }}
+            </span>
+          </div>
         </div>
       </aside>
 
       <!-- Main -->
       <main class="main">
-        <div class="empty-state" *ngIf="!activeLesson() && !isLoading()">
+        <!-- Course Complete Banner -->
+        <div class="complete-banner" *ngIf="isCourseComplete()">
+          <div class="complete-inner">
+            <div class="complete-icon">🎉</div>
+            <div>
+              <h3>Course Completed!</h3>
+              <p>You've finished all lessons and passed the quiz. Your certificate is on its way.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quiz Gate Banner -->
+        <div class="quiz-gate-banner" *ngIf="showQuizGate()">
+          <div class="gate-inner">
+            <div class="gate-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="gate-text">
+              <strong>Almost there!</strong> Complete the quiz to finish this course.
+            </div>
+            <div class="gate-quizzes">
+              <a *ngFor="let quiz of quizStatus()?.quizzes" [routerLink]="['/courses', courseId, 'quizzes', quiz.quizId]"
+                class="btn-quiz-cta" [class.passed]="quiz.passed">
+                <svg *ngIf="quiz.passed" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                {{ quiz.passed ? quiz.title + ' ✓' : 'Take: ' + quiz.title }}
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="!activeLesson() && !isLoading() && !isCourseComplete()">
           <svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="1.5"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
           <p>Select a lesson from the sidebar to begin.</p>
         </div>
@@ -98,10 +162,6 @@ interface LessonProgress { [lessonId: string]: boolean; }
             </div>
           </div>
 
-          <div style="padding:1rem 1.5rem 0" *ngIf="shouldShowQuizCta() && firstQuizId">
-            <a class="btn btn-primary" [routerLink]="['/courses', courseId, 'quizzes', firstQuizId]">Take Quiz</a>
-          </div>
-
           <!-- Content body -->
           <div class="content-body" *ngIf="lesson.content">
             <h2 *ngIf="lesson.lessonType !== 'Video'">{{ lesson.title }}</h2>
@@ -138,14 +198,44 @@ interface LessonProgress { [lessonId: string]: boolean; }
     .type-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
     .dot-video { background: #818cf8; } .dot-article { background: #4ade80; } .dot-quiz { background: #f472b6; }
     .lesson-dur { font-size: .7rem; color: #475569; white-space: nowrap; }
+
+    .quiz-section { padding: .5rem 0; border-top: 1px solid #334155; margin-top: .25rem; }
+    .quiz-section-label { display: flex; align-items: center; justify-content: space-between; padding: .5rem 1rem .35rem; font-size: .72rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+    .quiz-required-badge { background: #f59e0b; color: #fff; font-size: .65rem; padding: .1rem .4rem; border-radius: 100px; font-weight: 700; text-transform: uppercase; animation: pulse-badge 1.5s ease-in-out infinite; }
+    @keyframes pulse-badge { 0%,100% { opacity: 1; } 50% { opacity: .65; } }
+    .quiz-item { text-decoration: none; display: flex; }
+    .quiz-item.quiz-passed { color: #4ade80; }
+    .quiz-item.quiz-pending { color: #f472b6; animation: pulse-item 2s ease-in-out infinite; }
+    @keyframes pulse-item { 0%,100% { background: transparent; } 50% { background: rgba(244,114,182,.08); } }
+    .quiz-score { font-size: .7rem; color: #4ade80; font-weight: 700; white-space: nowrap; }
+
     .sidebar-footer { padding: .875rem 1.25rem; border-top: 1px solid #334155; flex-shrink: 0; }
     .sidebar-progress-label { display: flex; justify-content: space-between; font-size: .75rem; color: #64748b; margin-bottom: .375rem; }
     .sidebar-progress-track { background: #334155; border-radius: 100px; height: 5px; overflow: hidden; margin-bottom: .375rem; }
     .sidebar-progress-fill { background: #6366f1; height: 100%; border-radius: 100px; transition: width .4s ease; }
     .sidebar-progress-sub { font-size: .7rem; color: #475569; }
+    .sidebar-quiz-status { margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #334155; }
+    .status-done { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 600; color: #4ade80; }
+    .status-pending { display: inline-flex; align-items: center; gap: .3rem; font-size: .72rem; font-weight: 600; color: #f472b6; }
 
     .main { display: flex; flex-direction: column; overflow-y: auto; background: #0f172a; }
     .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: #475569; font-size: .95rem; }
+
+    .complete-banner { background: linear-gradient(135deg, #059669, #0284c7); padding: 1rem 1.5rem; flex-shrink: 0; }
+    .complete-inner { display: flex; align-items: center; gap: 1rem; }
+    .complete-icon { font-size: 2rem; }
+    .complete-banner h3 { margin: 0 0 .2rem; color: #fff; font-size: 1rem; }
+    .complete-banner p { margin: 0; color: rgba(255,255,255,.85); font-size: .85rem; }
+
+    .quiz-gate-banner { background: #1e293b; border-bottom: 1px solid #334155; padding: .875rem 1.5rem; flex-shrink: 0; }
+    .gate-inner { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .gate-icon { color: #f59e0b; flex-shrink: 0; display: flex; }
+    .gate-text { color: #e2e8f0; font-size: .875rem; flex: 1; }
+    .gate-text strong { color: #f59e0b; }
+    .gate-quizzes { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .btn-quiz-cta { display: inline-flex; align-items: center; gap: .375rem; padding: .45rem .875rem; background: #6366f1; color: #fff; border-radius: 8px; text-decoration: none; font-size: .8rem; font-weight: 600; transition: background .2s; white-space: nowrap; }
+    .btn-quiz-cta:hover { background: #4f46e5; }
+    .btn-quiz-cta.passed { background: #059669; cursor: default; }
 
     .video-wrapper { background: #000; width: 100%; aspect-ratio: 16/9; max-height: 62vh; flex-shrink: 0; }
     .video-player { width: 100%; height: 100%; display: block; }
@@ -170,6 +260,7 @@ interface LessonProgress { [lessonId: string]: boolean; }
 })
 export class CoursePlayerComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly contentService = inject(ContentService);
   private readonly http = inject(HttpClient);
   private readonly quizService = inject(QuizService);
@@ -177,12 +268,12 @@ export class CoursePlayerComponent implements OnInit {
   @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
 
   courseId = '';
-  firstQuizId = '';
   modules = signal<Module[]>([]);
   isLoading = signal(true);
   isMarkingComplete = signal(false);
   activeLesson = signal<Lesson | null>(null);
   lessonProgress = signal<LessonProgress>({});
+  quizStatus = signal<QuizStatus | null>(null);
   expandedModules: Record<string, boolean> = {};
 
   allLessons = computed<Lesson[]>(() => this.modules().flatMap(m => m.lessons));
@@ -190,6 +281,15 @@ export class CoursePlayerComponent implements OnInit {
   completedCount = computed(() => Object.values(this.lessonProgress()).filter(Boolean).length);
   progressPercent = computed(() =>
     this.totalLessons() === 0 ? 0 : Math.round(this.completedCount() / this.totalLessons() * 100)
+  );
+  allLessonsDone = computed(() =>
+    this.totalLessons() > 0 && this.completedCount() >= this.totalLessons()
+  );
+  isCourseComplete = computed(() =>
+    this.allLessonsDone() && (this.quizStatus()?.allPassed ?? true)
+  );
+  showQuizGate = computed(() =>
+    this.allLessonsDone() && !!(this.quizStatus()?.hasQuizzes) && !this.quizStatus()?.allPassed
   );
   hasPrev = computed(() => {
     const cur = this.activeLesson();
@@ -200,21 +300,44 @@ export class CoursePlayerComponent implements OnInit {
   ngOnInit(): void {
     this.courseId = this.route.snapshot.paramMap.get('courseId') ?? '';
     const lessonId = this.route.snapshot.paramMap.get('lessonId');
-    this.contentService.getModules(this.courseId).subscribe({
-      next: data => {
-        this.modules.set(data);
-        data.forEach(m => this.expandedModules[m.id] = true);
+
+    forkJoin({
+      modules: this.contentService.getModules(this.courseId),
+      progress: this.http.get<string[]>(`${environment.apiUrl}/api/courses/${this.courseId}/lesson-progress`)
+    }).subscribe({
+      next: ({ modules, progress }) => {
+        this.modules.set(modules);
+        modules.forEach(m => this.expandedModules[m.id] = true);
+
+        const progressMap: LessonProgress = {};
+        progress.forEach(id => progressMap[id] = true);
+        this.lessonProgress.set(progressMap);
+
         this.isLoading.set(false);
         const target = lessonId
           ? this.allLessons().find(l => l.id === lessonId)
           : this.allLessons()[0];
         if (target) this.selectLesson(target);
       },
-      error: () => this.isLoading.set(false)
+      error: () => {
+        this.contentService.getModules(this.courseId).subscribe({
+          next: modules => {
+            this.modules.set(modules);
+            modules.forEach(m => this.expandedModules[m.id] = true);
+            this.isLoading.set(false);
+            const target = lessonId
+              ? this.allLessons().find(l => l.id === lessonId)
+              : this.allLessons()[0];
+            if (target) this.selectLesson(target);
+          },
+          error: () => this.isLoading.set(false)
+        });
+      }
     });
 
-    this.quizService.getCourseQuizzes(this.courseId).subscribe({
-      next: quizzes => this.firstQuizId = quizzes[0]?.id ?? ''
+    this.quizService.getQuizStatus(this.courseId).subscribe({
+      next: status => this.quizStatus.set(status),
+      error: () => {}
     });
   }
 
@@ -257,7 +380,14 @@ export class CoursePlayerComponent implements OnInit {
     if (!cur) return;
     const all = this.allLessons();
     const idx = all.findIndex(l => l.id === cur.id);
-    if (idx < all.length - 1) this.selectLesson(all[idx + 1]);
+    if (idx < all.length - 1) {
+      this.selectLesson(all[idx + 1]);
+    } else if (this.showQuizGate()) {
+      const firstQuiz = this.quizStatus()?.quizzes[0];
+      if (firstQuiz) {
+        this.router.navigate(['/courses', this.courseId, 'quizzes', firstQuiz.quizId]);
+      }
+    }
   }
 
   private markComplete(lesson: Lesson, thenNext = false): void {
@@ -270,23 +400,12 @@ export class CoursePlayerComponent implements OnInit {
       next: () => {
         this.lessonProgress.update(p => ({ ...p, [lesson.id]: true }));
         this.isMarkingComplete.set(false);
-        if (thenNext) this.nextLesson();
+
+        if (thenNext) {
+          this.nextLesson();
+        }
       },
       error: () => this.isMarkingComplete.set(false)
     });
-  }
-
-  shouldShowQuizCta(): boolean {
-    const lesson = this.activeLesson();
-    if (!lesson || !this.firstQuizId) {
-      return false;
-    }
-
-    const module = this.modules().find(m => m.id === lesson.moduleId);
-    if (!module) {
-      return false;
-    }
-
-    return module.lessons.length > 0 && module.lessons.every(item => this.lessonProgress()[item.id]);
   }
 }

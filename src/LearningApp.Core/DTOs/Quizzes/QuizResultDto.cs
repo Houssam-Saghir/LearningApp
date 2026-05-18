@@ -20,4 +20,12 @@ public class QuizAnswerResultDto
     public string? Explanation { get; set; }
     public List<Guid> SelectedOptionIds { get; set; } = new();
     public List<Guid> CorrectOptionIds { get; set; } = new();
+    public List<QuizOptionResultDto> Options { get; set; } = new();
+}
+
+public class QuizOptionResultDto
+{
+    public Guid Id { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public bool IsCorrect { get; set; }
 }
