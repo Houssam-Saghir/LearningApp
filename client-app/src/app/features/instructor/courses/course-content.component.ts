@@ -172,8 +172,26 @@ type ModalMode = 'module' | 'lesson';
             </div>
           </div>
           <div class="form-group" *ngIf="lf.lessonType === 'Video'">
-            <label>Video URL</label>
-            <input type="text" [(ngModel)]="lf.videoUrl" placeholder="https://..." />
+            <label>Video</label>
+            <input type="text" [(ngModel)]="lf.videoUrl" placeholder="https://... or upload a file" />
+            <div style="margin-top:0.5rem; display:flex; align-items:center; gap:0.5rem" *ngIf="isEditingLesson">
+              <label class="btn-icon btn-upload" [class.uploading]="uploadingLessonId() === editingLessonId" style="cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem; padding:0.4rem 0.75rem; font-size:0.8rem; font-weight:600; border-radius:6px;">
+                <ng-container *ngIf="uploadingLessonId() !== editingLessonId">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                  </svg>
+                  Upload Video
+                </ng-container>
+                <span *ngIf="uploadingLessonId() === editingLessonId" class="spinner"></span>
+                <input type="file" accept="video/mp4,video/webm,video/ogg,video/quicktime" style="display:none" (change)="onModalVideoFile($event)" />
+              </label>
+              <span *ngIf="lf.videoUrl" style="font-size:0.75rem; color:#16a34a; display:flex; align-items:center; gap:0.25rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                Video uploaded
+              </span>
+            </div>
+            <span *ngIf="!isEditingLesson" style="font-size:0.75rem; color:#94a3b8; margin-top:0.25rem; display:block;">Save the lesson first to enable file upload.</span>
           </div>
           <div class="form-group">
             <label>Content</label>
@@ -276,7 +294,7 @@ export class CourseContentComponent implements OnInit {
 
   // editing context
   private editingModuleId: string | null = null;
-  private editingLessonId: string | null = null;
+  editingLessonId: string | null = null;
   private targetModuleId: string | null = null;
 
   mf = { title: '', description: '', order: 1 };
@@ -395,6 +413,30 @@ export class CourseContentComponent implements OnInit {
       this.modules.update(list => list.map(x =>
         x.id === m.id ? { ...x, lessons: x.lessons.filter(ls => ls.id !== l.id) } : x
       ));
+    });
+  }
+
+  get isEditingLesson(): boolean {
+    return !!this.editingLessonId;
+  }
+
+  onModalVideoFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.editingLessonId) return;
+    input.value = '';
+    const lessonId = this.editingLessonId;
+    this.uploadingLessonId.set(lessonId);
+    this.contentService.uploadVideo(lessonId, file).subscribe({
+      next: ({ videoUrl }) => {
+        this.lf.videoUrl = videoUrl;
+        this.modules.update(list => list.map(m => ({
+          ...m,
+          lessons: m.lessons.map(l => l.id === lessonId ? { ...l, videoUrl } : l)
+        })));
+        this.uploadingLessonId.set(null);
+      },
+      error: () => this.uploadingLessonId.set(null)
     });
   }
 
