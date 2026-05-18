@@ -20,7 +20,6 @@ import { InstructorService } from '../../core/services/instructor.service';
         <div class="empty" *ngIf="!courses.length">No published courses yet.</div>
         <a class="course-link" *ngFor="let course of courses" [routerLink]="['/courses', course.id]">
           <span>{{ course.title }}</span>
-          <span class="muted">{{ course.price === 0 ? 'Free' : (course.price | currency) }}</span>
         </a>
       </section>
     </div>
@@ -30,7 +29,7 @@ import { InstructorService } from '../../core/services/instructor.service';
     .card { background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 6px 20px rgba(15,23,42,.06); }
     .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
     .hero p { margin: .25rem 0 .4rem; opacity: .95; }
-    .course-link { display: flex; justify-content: space-between; gap: .5rem; align-items: center; text-decoration: none; color: #0f172a; padding: .75rem 0; border-top: 1px solid #e2e8f0; }
+    .course-link { display: block; text-decoration: none; color: #0f172a; padding: .75rem 0; border-top: 1px solid #e2e8f0; font-weight: 500; }
     .course-link:first-of-type { border-top: 0; }
     .muted, .empty { color: #64748b; }
     .hero .muted { color: rgba(255,255,255,.85); }

@@ -185,7 +185,6 @@ public class InstructorsController(AppDbContext dbContext) : ControllerBase
                 c.ThumbnailUrl,
                 c.Category,
                 c.Level,
-                c.Price,
                 c.IsPublished,
                 c.InstructorId,
                 c.CreatedAt,

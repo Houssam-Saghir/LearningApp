@@ -33,7 +33,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
               <th>Title</th>
               <th>Category</th>
               <th>Level</th>
-              <th>Price</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -46,7 +45,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </td>
               <td><span class="badge badge-category">{{ course.category }}</span></td>
               <td><span class="badge badge-level" [ngClass]="'level-' + course.level.toLowerCase()">{{ course.level }}</span></td>
-              <td class="price">{{ course.price === 0 ? 'Free' : ('$' + course.price.toFixed(2)) }}</td>
               <td>
                 <span class="badge" [ngClass]="course.isPublished ? 'badge-published' : 'badge-draft'">
                   {{ course.isPublished ? 'Published' : 'Draft' }}
@@ -145,46 +143,9 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Price ($)</label>
-                <input type="number" formControlName="price" min="0" step="0.01" placeholder="0.00" />
-                <span class="helper">Enter 0 for a free course</span>
-              </div>
-
-              <div class="form-group">
-                <label>Thumbnail</label>
-                <div class="thumb-upload-box" [class.has-preview]="thumbnailPreview()">
-                  <img *ngIf="thumbnailPreview()" 
-                       [src]="thumbnailPreview()" class="thumb-preview" alt="Thumbnail" />
-                  <div *ngIf="!thumbnailPreview()" class="thumb-placeholder">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                      <polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    <span>No thumbnail</span>
-                  </div>
-                  <div *ngIf="isUploadingThumb()" class="thumb-uploading">
-                    <div class="thumb-spinner"></div>
-                  </div>
-                </div>
-                <div class="thumb-actions">
-                  <label class="btn-upload-thumb">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-                    </svg>
-                    {{ thumbnailPreview() ? 'Replace' : 'Upload' }}
-                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onThumbnailFile($event)" hidden />
-                  </label>
-                  <button type="button" class="btn-remove-thumb" *ngIf="thumbnailPreview()" (click)="removeThumbnail()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                    </svg>
-                    Remove
-                  </button>
-                </div>
-              </div>
+            <div class="form-group">
+              <label>Thumbnail URL</label>
+              <input formControlName="thumbnailUrl" placeholder="https://..." />
             </div>
 
             <div class="form-group" *ngIf="isAdmin()">
@@ -325,11 +286,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
       color: #94a3b8;
       font-size: 0.813rem;
       margin-top: 0.2rem;
-    }
-
-    .price {
-      font-weight: 600;
-      color: #1e293b;
     }
 
     .badge {
@@ -581,13 +537,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
       margin-top: 0.3rem;
     }
 
-    .helper {
-      display: block;
-      color: #94a3b8;
-      font-size: 0.8rem;
-      margin-top: 0.3rem;
-    }
-
     .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -723,7 +672,6 @@ export class CourseManagementComponent implements OnInit {
     description: ['', Validators.required],
     category: ['', Validators.required],
     level: ['Beginner' as CourseLevel, Validators.required],
-    price: [0, [Validators.required, Validators.min(0)]],
     thumbnailUrl: [''],
     instructorId: ['']
   });
@@ -745,8 +693,7 @@ export class CourseManagementComponent implements OnInit {
 
   openCreate(): void {
     this.editingCourse.set(null);
-    this.thumbnailPreview.set('');
-    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', price: 0, thumbnailUrl: '', instructorId: '' });
+    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', thumbnailUrl: '', instructorId: '' });
     this.showModal.set(true);
   }
 
@@ -758,7 +705,6 @@ export class CourseManagementComponent implements OnInit {
       description: course.description,
       category: course.category,
       level: course.level,
-      price: course.price,
       thumbnailUrl: course.thumbnailUrl,
       instructorId: course.instructorId ?? ''
     });
@@ -826,7 +772,6 @@ export class CourseManagementComponent implements OnInit {
       description: val.description!,
       category: val.category!,
       level: val.level as CourseLevel,
-      price: Number(val.price),
       thumbnailUrl: val.thumbnailUrl ?? ''
     };
 
@@ -897,4 +842,3 @@ export class CourseManagementComponent implements OnInit {
     return !!(ctrl?.invalid && ctrl.touched);
   }
 }
-

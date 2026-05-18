@@ -47,11 +47,11 @@ public static class DbSeeder
 
         var courses = new List<Course>
         {
-            new() { Title = "Angular Fundamentals", Description = "Build modern Angular apps.", ThumbnailUrl = "https://picsum.photos/seed/angular/400/220", Category = "Web Development", Level = CourseLevel.Beginner, Price = 49, IsPublished = true, Instructor = instructor },
-            new() { Title = "ASP.NET Core APIs", Description = "Design robust APIs.", ThumbnailUrl = "https://picsum.photos/seed/dotnet/400/220", Category = "Backend", Level = CourseLevel.Intermediate, Price = 59, IsPublished = true, Instructor = instructor },
-            new() { Title = "Database Design", Description = "Relational modeling and SQL.", ThumbnailUrl = "https://picsum.photos/seed/db/400/220", Category = "Data", Level = CourseLevel.Beginner, Price = 39, IsPublished = true, Instructor = instructor },
-            new() { Title = "DevOps Essentials", Description = "CI/CD and deployment basics.", ThumbnailUrl = "https://picsum.photos/seed/devops/400/220", Category = "DevOps", Level = CourseLevel.Intermediate, Price = 69, IsPublished = true, Instructor = instructor },
-            new() { Title = "System Design", Description = "Scalable architecture principles.", ThumbnailUrl = "https://picsum.photos/seed/system/400/220", Category = "Architecture", Level = CourseLevel.Advanced, Price = 89, IsPublished = false, Instructor = instructor }
+            new() { Title = "Angular Fundamentals", Description = "Build modern Angular apps.", ThumbnailUrl = "https://picsum.photos/seed/angular/400/220", Category = "Web Development", Level = CourseLevel.Beginner, IsPublished = true, Instructor = instructor },
+            new() { Title = "ASP.NET Core APIs", Description = "Design robust APIs.", ThumbnailUrl = "https://picsum.photos/seed/dotnet/400/220", Category = "Backend", Level = CourseLevel.Intermediate, IsPublished = true, Instructor = instructor },
+            new() { Title = "Database Design", Description = "Relational modeling and SQL.", ThumbnailUrl = "https://picsum.photos/seed/db/400/220", Category = "Data", Level = CourseLevel.Beginner, IsPublished = true, Instructor = instructor },
+            new() { Title = "DevOps Essentials", Description = "CI/CD and deployment basics.", ThumbnailUrl = "https://picsum.photos/seed/devops/400/220", Category = "DevOps", Level = CourseLevel.Intermediate, IsPublished = true, Instructor = instructor },
+            new() { Title = "System Design", Description = "Scalable architecture principles.", ThumbnailUrl = "https://picsum.photos/seed/system/400/220", Category = "Architecture", Level = CourseLevel.Advanced, IsPublished = false, Instructor = instructor }
         };
 
         context.Courses.AddRange(courses);

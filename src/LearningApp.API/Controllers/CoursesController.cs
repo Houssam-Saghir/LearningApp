@@ -88,7 +88,6 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
             ThumbnailUrl = request.ThumbnailUrl,
             Category = request.Category,
             Level = request.Level,
-            Price = request.Price,
             InstructorId = userId.Value,
             IsPublished = false
         };

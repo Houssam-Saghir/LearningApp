@@ -11,7 +11,7 @@ interface PagedResult<T> {
   pageSize: number;
 }
 
-type CreateCoursePayload = Pick<Course, 'title' | 'description' | 'thumbnailUrl' | 'category' | 'level' | 'price'>;
+type CreateCoursePayload = Pick<Course, 'title' | 'description' | 'thumbnailUrl' | 'category' | 'level'>;
 type UpdateCoursePayload = CreateCoursePayload & Pick<Course, 'isPublished'>;
 
 @Injectable({ providedIn: 'root' })
