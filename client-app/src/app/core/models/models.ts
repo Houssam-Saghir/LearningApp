@@ -37,6 +37,7 @@ export interface Enrollment {
   userId: string;
   courseId: string;
   progress: number;
+  completedAt?: string;
   course?: Course;
 }
 
@@ -108,14 +109,10 @@ export interface QuizAttempt {
   completedAt?: string;
 }
 
-export interface QuizResult {
-  attemptId: string;
-  score: number;
-  passed: boolean;
-  passingScore: number;
-  correctCount: number;
-  totalQuestions: number;
-  answers: QuizAnswerResult[];
+export interface QuizOptionResult {
+  id: string;
+  text: string;
+  isCorrect: boolean;
 }
 
 export interface QuizAnswerResult {
@@ -125,6 +122,32 @@ export interface QuizAnswerResult {
   explanation?: string;
   selectedOptionIds: string[];
   correctOptionIds: string[];
+  options: QuizOptionResult[];
+}
+
+export interface QuizResult {
+  attemptId: string;
+  score: number;
+  passed: boolean;
+  passingScore: number;
+  correctCount: number;
+  totalQuestions: number;
+  timeTaken?: string;
+  answers: QuizAnswerResult[];
+}
+
+export interface QuizPassStatusItem {
+  quizId: string;
+  title: string;
+  passed: boolean;
+  bestScore?: number;
+  attemptCount: number;
+}
+
+export interface QuizStatus {
+  hasQuizzes: boolean;
+  allPassed: boolean;
+  quizzes: QuizPassStatusItem[];
 }
 
 export interface Achievement {

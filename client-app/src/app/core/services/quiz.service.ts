@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Quiz, QuizAttempt, QuizQuestion, QuizOption, QuizResult } from '../models/models';
+import { Quiz, QuizAttempt, QuizQuestion, QuizOption, QuizResult, QuizStatus } from '../models/models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -12,8 +12,36 @@ export class QuizService {
     return this.http.get<Quiz[]>(`${environment.apiUrl}/api/courses/${courseId}/quizzes`);
   }
 
+  getInstructorQuizzes(courseId: string): Observable<Quiz[]> {
+    return this.http.get<Quiz[]>(`${environment.apiUrl}/api/courses/${courseId}/quizzes/instructor`);
+  }
+
+  getQuizStatus(courseId: string): Observable<QuizStatus> {
+    return this.http.get<QuizStatus>(`${environment.apiUrl}/api/courses/${courseId}/quiz-status`);
+  }
+
   getQuiz(quizId: string): Observable<Quiz> {
     return this.http.get<Quiz>(`${environment.apiUrl}/api/quizzes/${quizId}`);
+  }
+
+  createQuiz(courseId: string, payload: { title: string; description: string; passingScore: number; timeLimitMinutes: number }): Observable<Quiz> {
+    return this.http.post<Quiz>(`${environment.apiUrl}/api/courses/${courseId}/quizzes`, payload);
+  }
+
+  updateQuiz(quizId: string, payload: { title: string; description: string; passingScore: number; timeLimitMinutes: number }): Observable<Quiz> {
+    return this.http.put<Quiz>(`${environment.apiUrl}/api/quizzes/${quizId}`, payload);
+  }
+
+  deleteQuiz(quizId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/api/quizzes/${quizId}`);
+  }
+
+  addQuestion(quizId: string, payload: Omit<Partial<QuizQuestion>, 'options'> & { options: Partial<QuizOption>[] }): Observable<QuizQuestion> {
+    return this.http.post<QuizQuestion>(`${environment.apiUrl}/api/quizzes/${quizId}/questions`, payload);
+  }
+
+  deleteQuestion(quizId: string, questionId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/api/quizzes/${quizId}/questions/${questionId}`);
   }
 
   submitAttempt(quizId: string, answers: { questionId: string; selectedOptionIds: string[] }[]): Observable<QuizResult> {
@@ -26,13 +54,5 @@ export class QuizService {
 
   getAttemptResult(quizId: string, attemptId: string): Observable<QuizResult> {
     return this.http.get<QuizResult>(`${environment.apiUrl}/api/quizzes/${quizId}/attempts/${attemptId}`);
-  }
-
-  createQuiz(courseId: string, payload: Partial<Quiz>): Observable<Quiz> {
-    return this.http.post<Quiz>(`${environment.apiUrl}/api/courses/${courseId}/quizzes`, payload);
-  }
-
-  addQuestion(quizId: string, payload: Omit<Partial<QuizQuestion>, 'options'> & { options: Partial<QuizOption>[] }): Observable<QuizQuestion> {
-    return this.http.post<QuizQuestion>(`${environment.apiUrl}/api/quizzes/${quizId}/questions`, payload);
   }
 }
