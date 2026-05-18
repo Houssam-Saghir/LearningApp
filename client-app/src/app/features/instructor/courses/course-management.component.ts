@@ -144,8 +144,43 @@ import { Course, CourseLevel } from '../../../core/models/models';
             </div>
 
             <div class="form-group">
-              <label>Thumbnail URL</label>
-              <input formControlName="thumbnailUrl" placeholder="https://..." />
+              <label>Thumbnail</label>
+
+              <!-- Preview box -->
+              <div class="thumb-upload-box" [class.has-preview]="thumbnailPreview()">
+                <img *ngIf="thumbnailPreview()" [src]="thumbnailPreview()" class="thumb-preview" alt="Thumbnail preview" />
+                <div *ngIf="!thumbnailPreview()" class="thumb-placeholder">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  <span>No thumbnail</span>
+                </div>
+                <div class="thumb-uploading" *ngIf="isUploadingThumb()">
+                  <div class="thumb-spinner"></div>
+                </div>
+              </div>
+
+              <!-- URL input -->
+              <input formControlName="thumbnailUrl" placeholder="https://... or upload a file below"
+                (input)="onThumbnailUrlInput($event)" />
+
+              <!-- Upload / Remove buttons -->
+              <div class="thumb-actions" style="margin-top:0.5rem">
+                <label class="btn-upload-thumb">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                    <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+                  </svg>
+                  Upload Image
+                  <input type="file" accept=".jpg,.jpeg,.png,.webp,.gif" style="display:none" (change)="onThumbnailFile($event)" />
+                </label>
+                <button type="button" class="btn-remove-thumb" *ngIf="thumbnailPreview()" (click)="removeThumbnail()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  Remove
+                </button>
+              </div>
             </div>
 
             <div class="form-group" *ngIf="isAdmin()">
@@ -693,6 +728,8 @@ export class CourseManagementComponent implements OnInit {
 
   openCreate(): void {
     this.editingCourse.set(null);
+    this.thumbnailPreview.set('');
+    this.pendingThumbnailFile = null;
     this.form.reset({ title: '', description: '', category: '', level: 'Beginner', thumbnailUrl: '', instructorId: '' });
     this.showModal.set(true);
   }
@@ -763,6 +800,11 @@ export class CourseManagementComponent implements OnInit {
   }
 
   private pendingThumbnailFile: File | null = null;
+
+  onThumbnailUrlInput(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.thumbnailPreview.set(value);
+  }
 
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
