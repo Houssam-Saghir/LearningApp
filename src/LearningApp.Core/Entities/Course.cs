@@ -10,7 +10,6 @@ public class Course
     public string ThumbnailUrl { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public CourseLevel Level { get; set; }
-    public decimal Price { get; set; }
     public bool IsPublished { get; set; }
     public Guid InstructorId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,11 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { CurrencyPipe, NgIf } from '@angular/common';
+import { NgIf } from '@angular/common';
 import { Course } from '../../core/models/models';
 
 @Component({
     selector: 'app-course-card',
-    imports: [RouterLink, CurrencyPipe, NgIf],
+    imports: [RouterLink, NgIf],
     template: `
     <article class="card" *ngIf="course">
       <img [src]="course.thumbnailUrl" [alt]="course.title" />
@@ -13,7 +13,6 @@ import { Course } from '../../core/models/models';
       <p>{{ course.description }}</p>
       <div class="meta">
         <span>{{ course.level }}</span>
-        <strong>{{ course.price | currency }}</strong>
       </div>
       <a [routerLink]="['/courses', course.id]">View Course</a>
     </article>

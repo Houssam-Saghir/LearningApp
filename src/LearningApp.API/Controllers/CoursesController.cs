@@ -88,7 +88,6 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
             ThumbnailUrl = request.ThumbnailUrl,
             Category = request.Category,
             Level = request.Level,
-            Price = request.Price,
             InstructorId = userId.Value,
             IsPublished = false
         };
@@ -113,7 +112,6 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
         course.ThumbnailUrl = request.ThumbnailUrl;
         course.Category = request.Category;
         course.Level = request.Level;
-        course.Price = request.Price;
         course.IsPublished = request.IsPublished;
         course.UpdatedAt = DateTime.UtcNow;
 
