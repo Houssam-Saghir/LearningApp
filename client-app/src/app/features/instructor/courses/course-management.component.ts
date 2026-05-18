@@ -33,7 +33,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
               <th>Title</th>
               <th>Category</th>
               <th>Level</th>
-              <th>Price</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -46,7 +45,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </td>
               <td><span class="badge badge-category">{{ course.category }}</span></td>
               <td><span class="badge badge-level" [ngClass]="'level-' + course.level.toLowerCase()">{{ course.level }}</span></td>
-              <td class="price">{{ course.price === 0 ? 'Free' : ('$' + course.price.toFixed(2)) }}</td>
               <td>
                 <span class="badge" [ngClass]="course.isPublished ? 'badge-published' : 'badge-draft'">
                   {{ course.isPublished ? 'Published' : 'Draft' }}
@@ -145,17 +143,9 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </div>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label>Price ($)</label>
-                <input type="number" formControlName="price" min="0" step="0.01" placeholder="0.00" />
-                <span class="helper">Enter 0 for a free course</span>
-              </div>
-
-              <div class="form-group">
-                <label>Thumbnail URL</label>
-                <input formControlName="thumbnailUrl" placeholder="https://..." />
-              </div>
+            <div class="form-group">
+              <label>Thumbnail URL</label>
+              <input formControlName="thumbnailUrl" placeholder="https://..." />
             </div>
 
             <div class="form-group" *ngIf="isAdmin()">
@@ -296,11 +286,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
       color: #94a3b8;
       font-size: 0.813rem;
       margin-top: 0.2rem;
-    }
-
-    .price {
-      font-weight: 600;
-      color: #1e293b;
     }
 
     .badge {
@@ -552,13 +537,6 @@ import { Course, CourseLevel } from '../../../core/models/models';
       margin-top: 0.3rem;
     }
 
-    .helper {
-      display: block;
-      color: #94a3b8;
-      font-size: 0.8rem;
-      margin-top: 0.3rem;
-    }
-
     .modal-actions {
       display: flex;
       justify-content: flex-end;
@@ -594,7 +572,6 @@ export class CourseManagementComponent implements OnInit {
     description: ['', Validators.required],
     category: ['', Validators.required],
     level: ['Beginner' as CourseLevel, Validators.required],
-    price: [0, [Validators.required, Validators.min(0)]],
     thumbnailUrl: [''],
     instructorId: ['']
   });
@@ -616,7 +593,7 @@ export class CourseManagementComponent implements OnInit {
 
   openCreate(): void {
     this.editingCourse.set(null);
-    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', price: 0, thumbnailUrl: '', instructorId: '' });
+    this.form.reset({ title: '', description: '', category: '', level: 'Beginner', thumbnailUrl: '', instructorId: '' });
     this.showModal.set(true);
   }
 
@@ -627,7 +604,6 @@ export class CourseManagementComponent implements OnInit {
       description: course.description,
       category: course.category,
       level: course.level,
-      price: course.price,
       thumbnailUrl: course.thumbnailUrl,
       instructorId: course.instructorId ?? ''
     });
@@ -647,7 +623,6 @@ export class CourseManagementComponent implements OnInit {
       description: val.description!,
       category: val.category!,
       level: val.level as CourseLevel,
-      price: Number(val.price),
       thumbnailUrl: val.thumbnailUrl ?? ''
     };
 
@@ -704,4 +679,3 @@ export class CourseManagementComponent implements OnInit {
     return !!(ctrl?.invalid && ctrl.touched);
   }
 }
-

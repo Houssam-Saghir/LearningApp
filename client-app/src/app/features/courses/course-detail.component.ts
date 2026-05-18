@@ -27,7 +27,6 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
             <span class="stat">{{ reviews.length }} reviews</span>
             <span class="stat">{{ enrollmentCount }} enrolled</span>
           </div>
-          <div class="price">{{ c.price === 0 ? 'Free' : (c.price | currency) }}</div>
         </div>
       </section>
 
@@ -98,9 +97,8 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
 
         <aside class="sidebar">
           <div class="card sticky">
-            <div class="price-large">{{ c.price === 0 ? 'Free' : (c.price | currency) }}</div>
             <button class="btn-primary" *ngIf="!isEnrolled" (click)="enroll()" [disabled]="isEnrolling">
-              {{ isEnrolling ? 'Enrolling...' : (c.price === 0 ? 'Enroll Free' : 'Enroll Now') }}
+              {{ isEnrolling ? 'Enrolling...' : 'Enroll Now' }}
             </button>
             <a class="btn-primary" *ngIf="isEnrolled && firstLessonId" [routerLink]="['/learn', c.id, 'lesson', firstLessonId]">
               Continue Learning
@@ -123,7 +121,6 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
     .badge { background: rgba(255,255,255,.25); color: #fff; padding: .25rem .65rem; border-radius: 999px; font-size: .75rem; font-weight: 600; }
     .badge-alt { background: rgba(255,255,255,.15); }
     .stats-row { display: flex; flex-wrap: wrap; gap: 1rem; font-size: .9rem; margin-bottom: .75rem; }
-    .price, .price-large { font-size: 1.5rem; font-weight: 700; }
     .content-grid { display: grid; grid-template-columns: 1fr 300px; gap: 1.25rem; align-items: start; }
     .main-content { display: grid; gap: 1.25rem; }
     .about-text { margin: 0 0 .75rem; color: #334155; line-height: 1.6; }

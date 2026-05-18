@@ -24,7 +24,6 @@ export interface Course {
   thumbnailUrl: string;
   category: string;
   level: CourseLevel;
-  price: number;
   isPublished: boolean;
   createdAt: string;
   instructorId: string;
