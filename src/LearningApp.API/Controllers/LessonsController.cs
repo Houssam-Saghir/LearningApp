@@ -1,5 +1,6 @@
 using LearningApp.API.Security;
 using LearningApp.Core.Entities;
+using LearningApp.Core.Enums;
 using LearningApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,7 @@ public class LessonsController(AppDbContext dbContext) : ControllerBase
 
         var lesson = await dbContext.Lessons
             .Include(l => l.Module)
+            .ThenInclude(m => m!.Course)
             .FirstOrDefaultAsync(l => l.Id == id);
         if (lesson is null || lesson.Module is null)
         {
@@ -65,10 +67,34 @@ public class LessonsController(AppDbContext dbContext) : ControllerBase
         var enrollment = await dbContext.Enrollments.FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
         if (enrollment is not null)
         {
+            var wasCompleted = enrollment.CompletedAt.HasValue;
             enrollment.Progress = totalLessons == 0 ? 0 : (int)Math.Round((double)completedLessons / totalLessons * 100);
             if (enrollment.Progress >= 100)
             {
                 enrollment.CompletedAt = DateTime.UtcNow;
+
+                if (!wasCompleted)
+                {
+                    var courseTitle = lesson.Module.Course?.Title ?? "Course";
+                    dbContext.Achievements.Add(new Achievement
+                    {
+                        UserId = userId.Value,
+                        Title = "Course Completed",
+                        Description = $"Completed course: {courseTitle}",
+                        IconUrl = "course-completed",
+                        Type = AchievementType.CourseCompleted
+                    });
+
+                    if (!await dbContext.UserCertificates.AnyAsync(c => c.UserId == userId.Value && c.CourseId == courseId))
+                    {
+                        dbContext.UserCertificates.Add(new UserCertificate
+                        {
+                            UserId = userId.Value,
+                            CourseId = courseId,
+                            CertificateNumber = $"CERT-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}"
+                        });
+                    }
+                }
             }
         }
 

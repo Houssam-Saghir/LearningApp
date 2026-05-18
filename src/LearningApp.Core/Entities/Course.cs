@@ -19,4 +19,5 @@ public class Course
     public ICollection<Module> Modules { get; set; } = new List<Module>();
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
 }

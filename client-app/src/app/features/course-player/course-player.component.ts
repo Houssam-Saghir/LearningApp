@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { ContentService } from '../../core/services/content.service';
 import { Module, Lesson } from '../../core/models/models';
 import { environment } from '../../../environments/environment';
+import { QuizService } from '../../core/services/quiz.service';
 
 interface LessonProgress { [lessonId: string]: boolean; }
 
@@ -97,6 +98,10 @@ interface LessonProgress { [lessonId: string]: boolean; }
             </div>
           </div>
 
+          <div style="padding:1rem 1.5rem 0" *ngIf="shouldShowQuizCta() && firstQuizId">
+            <a class="btn btn-primary" [routerLink]="['/courses', courseId, 'quizzes', firstQuizId]">Take Quiz</a>
+          </div>
+
           <!-- Content body -->
           <div class="content-body" *ngIf="lesson.content">
             <h2 *ngIf="lesson.lessonType !== 'Video'">{{ lesson.title }}</h2>
@@ -167,10 +172,12 @@ export class CoursePlayerComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly contentService = inject(ContentService);
   private readonly http = inject(HttpClient);
+  private readonly quizService = inject(QuizService);
 
   @ViewChild('videoEl') videoEl?: ElementRef<HTMLVideoElement>;
 
   courseId = '';
+  firstQuizId = '';
   modules = signal<Module[]>([]);
   isLoading = signal(true);
   isMarkingComplete = signal(false);
@@ -204,6 +211,10 @@ export class CoursePlayerComponent implements OnInit {
         if (target) this.selectLesson(target);
       },
       error: () => this.isLoading.set(false)
+    });
+
+    this.quizService.getCourseQuizzes(this.courseId).subscribe({
+      next: quizzes => this.firstQuizId = quizzes[0]?.id ?? ''
     });
   }
 
@@ -264,5 +275,18 @@ export class CoursePlayerComponent implements OnInit {
       error: () => this.isMarkingComplete.set(false)
     });
   }
-}
 
+  shouldShowQuizCta(): boolean {
+    const lesson = this.activeLesson();
+    if (!lesson || !this.firstQuizId) {
+      return false;
+    }
+
+    const module = this.modules().find(m => m.id === lesson.moduleId);
+    if (!module) {
+      return false;
+    }
+
+    return module.lessons.length > 0 && module.lessons.every(item => this.lessonProgress()[item.id]);
+  }
+}
