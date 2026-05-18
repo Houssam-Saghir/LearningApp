@@ -8,7 +8,7 @@ import { Course } from '../../core/models/models';
     imports: [RouterLink, NgIf],
     template: `
     <article class="card" *ngIf="course">
-      <img [src]="course.thumbnailUrl" [alt]="course.title" />
+      <img [src]="course.thumbnailUrl || fallbackThumbnail" [alt]="course.title" (error)="onImageError($event)" />
       <h3>{{ course.title }}</h3>
       <p>{{ course.description }}</p>
       <div class="meta">
@@ -21,4 +21,12 @@ import { Course } from '../../core/models/models';
 })
 export class CourseCardComponent {
   @Input() course!: Course;
+  readonly fallbackThumbnail = '/assets/default-thumbnail.svg';
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img && !img.src.endsWith(this.fallbackThumbnail)) {
+      img.src = this.fallbackThumbnail;
+    }
+  }
 }

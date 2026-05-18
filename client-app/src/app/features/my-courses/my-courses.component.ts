@@ -80,7 +80,7 @@ type Filter = 'all' | 'in-progress' | 'completed';
       <div class="courses-grid" *ngIf="!isLoading() && filtered().length > 0">
         <div class="course-card" *ngFor="let e of filtered()">
           <a [routerLink]="['/courses', e.courseId]" class="thumbnail-link">
-            <img *ngIf="e.course?.thumbnailUrl" [src]="e.course!.thumbnailUrl" [alt]="e.course?.title" />
+            <img *ngIf="e.course?.thumbnailUrl" [src]="e.course!.thumbnailUrl" [alt]="e.course?.title" (error)="onImageError($event)" />
             <div class="thumbnail-placeholder" *ngIf="!e.course?.thumbnailUrl">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
@@ -220,5 +220,11 @@ export class MyCoursesComponent implements OnInit {
   setFilter(f: Filter): void {
     this.activeFilter.set(f);
   }
-}
 
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img && !img.src.endsWith('/assets/default-thumbnail.svg')) {
+      img.src = '/assets/default-thumbnail.svg';
+    }
+  }
+}

@@ -179,6 +179,8 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
         if (!allowed.Contains(ext))
             return BadRequest(new { message = "Only jpg, png, webp, gif files are allowed." });
+        if (string.IsNullOrWhiteSpace(file.ContentType) || !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { message = "Only image files are allowed." });
 
         var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
         var thumbsDir = Path.Combine(webRoot, "thumbnails");
@@ -191,7 +193,8 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
             if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
         }
 
-        var fileName = $"{id}{ext}";
+        var blobId = Guid.NewGuid();
+        var fileName = $"{blobId}{ext}";
         var filePath = Path.Combine(thumbsDir, fileName);
         await using var stream = System.IO.File.Create(filePath);
         await file.CopyToAsync(stream);

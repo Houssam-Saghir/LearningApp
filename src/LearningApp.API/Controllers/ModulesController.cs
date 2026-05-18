@@ -104,7 +104,8 @@ public class ModulesController(AppDbContext dbContext) : ControllerBase
             if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
         }
 
-        var fileName = $"{id}{ext}";
+        var blobId = Guid.NewGuid();
+        var fileName = $"{blobId}{ext}";
         var filePath = Path.Combine(videosDir, fileName);
 
         await using var stream = System.IO.File.Create(filePath);

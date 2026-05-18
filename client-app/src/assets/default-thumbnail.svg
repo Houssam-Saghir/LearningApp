@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Default course thumbnail">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea" />
+      <stop offset="100%" stop-color="#764ba2" />
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)" />
+  <g fill="none" stroke="#ffffff" stroke-opacity=".85" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="430" y="220" width="340" height="240" rx="24" />
+    <circle cx="515" cy="295" r="26" />
+    <path d="M770 430 650 320 480 490" />
+  </g>
+  <text x="600" y="570" text-anchor="middle" fill="#ffffff" fill-opacity=".9" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="600">
+    Course Thumbnail
+  </text>
+</svg>
