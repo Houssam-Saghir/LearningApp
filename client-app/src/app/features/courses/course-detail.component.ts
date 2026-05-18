@@ -7,10 +7,11 @@ import { EnrollmentService } from '../../core/services/enrollment.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Course, Review } from '../../core/models/models';
 import { StarRatingComponent } from '../../shared/components/star-rating.component';
+import { QuizListComponent } from '../quiz/quiz-list.component';
 
 @Component({
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, StarRatingComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, StarRatingComponent, QuizListComponent],
   template: `
     <div class="course-detail" *ngIf="course as c">
       <section class="hero card">
@@ -47,6 +48,11 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
                 <li *ngFor="let lesson of module.lessons">{{ lesson.title }}</li>
               </ul>
             </div>
+          </section>
+
+          <section class="card">
+            <h2>Quizzes</h2>
+            <app-quiz-list [courseId]="c.id" [isEnrolled]="isEnrolled"></app-quiz-list>
           </section>
 
           <section class="card" id="reviews">

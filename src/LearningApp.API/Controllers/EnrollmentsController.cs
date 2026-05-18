@@ -1,5 +1,6 @@
 using LearningApp.API.Security;
 using LearningApp.Core.DTOs.Enrollments;
+using LearningApp.Core.Enums;
 using LearningApp.Core.Entities;
 using LearningApp.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +33,7 @@ public class EnrollmentsController(AppDbContext dbContext) : ControllerBase
             return Conflict(new { message = "Already enrolled." });
         }
 
+        var isFirstEnrollment = !await dbContext.Enrollments.AnyAsync(e => e.UserId == userId);
         var enrollment = new Enrollment
         {
             UserId = userId.Value,
@@ -40,6 +42,19 @@ public class EnrollmentsController(AppDbContext dbContext) : ControllerBase
         };
 
         dbContext.Enrollments.Add(enrollment);
+
+        if (isFirstEnrollment)
+        {
+            dbContext.Achievements.Add(new Achievement
+            {
+                UserId = userId.Value,
+                Title = "First Enrollment",
+                Description = "Enrolled in your first course.",
+                IconUrl = "first-enrollment",
+                Type = AchievementType.FirstEnrollment
+            });
+        }
+
         await dbContext.SaveChangesAsync();
         return Ok(enrollment);
     }

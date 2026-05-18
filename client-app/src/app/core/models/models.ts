@@ -69,3 +69,77 @@ export interface Lesson {
   order: number;
   lessonType: 'Video' | 'Article' | 'Quiz';
 }
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string;
+  courseId: string;
+  passingScore: number;
+  timeLimitMinutes: number;
+  isActive: boolean;
+  createdAt: string;
+  questions: QuizQuestion[];
+}
+
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  type: 'MultipleChoice' | 'TrueFalse' | 'MultiSelect';
+  order: number;
+  points: number;
+  explanation?: string;
+  options: QuizOption[];
+}
+
+export interface QuizOption {
+  id: string;
+  text: string;
+  order: number;
+  isCorrect?: boolean;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quizId: string;
+  score: number;
+  passed: boolean;
+  startedAt: string;
+  completedAt?: string;
+}
+
+export interface QuizResult {
+  attemptId: string;
+  score: number;
+  passed: boolean;
+  passingScore: number;
+  correctCount: number;
+  totalQuestions: number;
+  answers: QuizAnswerResult[];
+}
+
+export interface QuizAnswerResult {
+  questionId: string;
+  questionText: string;
+  isCorrect: boolean;
+  explanation?: string;
+  selectedOptionIds: string[];
+  correctOptionIds: string[];
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  iconUrl: string;
+  type: string;
+  earnedAt: string;
+}
+
+export interface UserCertificate {
+  id: string;
+  courseId: string;
+  courseName?: string;
+  certificateNumber: string;
+  issuedAt: string;
+}
