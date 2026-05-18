@@ -11,7 +11,6 @@ public class CreateCourseRequestValidator : AbstractValidator<CreateCourseReques
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Description).NotEmpty();
         RuleFor(x => x.Category).NotEmpty();
-        RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
     }
 }
 
@@ -22,7 +21,6 @@ public class UpdateCourseRequestValidator : AbstractValidator<UpdateCourseReques
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Description).NotEmpty();
         RuleFor(x => x.Category).NotEmpty();
-        RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
     }
 }
 

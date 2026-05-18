@@ -451,6 +451,7 @@ import { Enrollment } from '../../core/models/models';
       justify-content: center;
       gap: 0.375rem;
       width: 100%;
+      box-sizing: border-box;
       padding: 0.625rem;
       background: #f8fafc;
       border: 1px solid #e2e8f0;

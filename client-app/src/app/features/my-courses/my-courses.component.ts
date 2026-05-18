@@ -178,7 +178,7 @@ type Filter = 'all' | 'in-progress' | 'completed';
     .progress-fill { height: 100%; background: linear-gradient(90deg,#667eea,#764ba2); border-radius: 100px; transition: width .5s ease; }
     .progress-fill.complete { background: linear-gradient(90deg,#10b981,#059669); }
 
-    .continue-btn { display: flex; align-items: center; justify-content: center; gap: .375rem; width: 100%; padding: .625rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; font-size: .875rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+    .continue-btn { display: flex; align-items: center; justify-content: center; gap: .375rem; width: 100%; box-sizing: border-box; padding: .625rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; font-size: .875rem; font-weight: 600; text-decoration: none; transition: all .2s; }
     .continue-btn:hover { background: linear-gradient(135deg,#667eea,#764ba2); color: #fff; border-color: transparent; }
 
     @media (max-width: 768px) {

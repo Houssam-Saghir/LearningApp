@@ -132,9 +132,10 @@ import { StarRatingComponent } from '../../shared/components/star-rating.compone
     .module ul { margin: 0; padding-left: 1rem; color: #475569; }
     .section-header { display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; align-items: center; margin-bottom: .75rem; }
     .review-form { display: grid; gap: .6rem; margin-bottom: 1rem; }
-    .star-picker { display: flex; gap: .35rem; }
-    .star-picker button { border: 0; background: #e2e8f0; color: #475569; width: 2rem; height: 2rem; border-radius: 50%; cursor: pointer; font-size: 1rem; }
-    .star-picker button.active { background: #fbbf24; color: #111827; }
+    .star-picker { display: flex; gap: .25rem; }
+    .star-picker button { border: 0; background: transparent; color: #d1d5db; width: auto; height: auto; border-radius: 0; cursor: pointer; font-size: 1.5rem; padding: 0 .1rem; line-height: 1; transition: color .15s, transform .1s; }
+    .star-picker button:hover { color: #fbbf24; transform: scale(1.15); }
+    .star-picker button.active { color: #fbbf24; }
     textarea { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 8px; padding: .65rem; font: inherit; }
     .review-item { padding: .75rem 0; border-top: 1px solid #e2e8f0; }
     .review-head { display: flex; justify-content: space-between; gap: .75rem; }

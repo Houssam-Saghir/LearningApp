@@ -191,6 +191,11 @@ import { AuthService } from '../../core/services/auth.service';
       min-height: 64px;
     }
 
+    .sidebar.collapsed .sidebar-header {
+      justify-content: center;
+      padding: 1.25rem 0;
+    }
+
     .logo {
       display: flex;
       align-items: center;

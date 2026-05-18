@@ -153,8 +153,37 @@ import { Course, CourseLevel } from '../../../core/models/models';
               </div>
 
               <div class="form-group">
-                <label>Thumbnail URL</label>
-                <input formControlName="thumbnailUrl" placeholder="https://..." />
+                <label>Thumbnail</label>
+                <div class="thumb-upload-box" [class.has-preview]="thumbnailPreview()">
+                  <img *ngIf="thumbnailPreview()" 
+                       [src]="thumbnailPreview()" class="thumb-preview" alt="Thumbnail" />
+                  <div *ngIf="!thumbnailPreview()" class="thumb-placeholder">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                      <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    <span>No thumbnail</span>
+                  </div>
+                  <div *ngIf="isUploadingThumb()" class="thumb-uploading">
+                    <div class="thumb-spinner"></div>
+                  </div>
+                </div>
+                <div class="thumb-actions">
+                  <label class="btn-upload-thumb">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    {{ thumbnailPreview() ? 'Replace' : 'Upload' }}
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="onThumbnailFile($event)" hidden />
+                  </label>
+                  <button type="button" class="btn-remove-thumb" *ngIf="thumbnailPreview()" (click)="removeThumbnail()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    </svg>
+                    Remove
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -572,6 +601,104 @@ import { Course, CourseLevel } from '../../../core/models/models';
       .form-row { grid-template-columns: 1fr; }
       .page-header { flex-direction: column; align-items: stretch; }
     }
+
+    /* Thumbnail upload widget */
+    .thumb-upload-box {
+      width: 100%;
+      height: 140px;
+      border: 2px dashed #e2e8f0;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 0.6rem;
+      transition: border-color 0.2s;
+    }
+
+    .thumb-upload-box.has-preview {
+      border-style: solid;
+      border-color: #e2e8f0;
+    }
+
+    .thumb-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: #94a3b8;
+      font-size: 0.8rem;
+    }
+
+    .thumb-uploading {
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thumb-spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #e2e8f0;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .thumb-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-upload-thumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.85rem;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .btn-upload-thumb:hover {
+      background: #e2e8f0;
+      color: #1e293b;
+    }
+
+    .btn-remove-thumb {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.85rem;
+      background: #fff1f2;
+      border: 1px solid #fecdd3;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #ef4444;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-remove-thumb:hover {
+      background: #ffe4e6;
+    }
   `]
 })
 export class CourseManagementComponent implements OnInit {
@@ -586,6 +713,8 @@ export class CourseManagementComponent implements OnInit {
   showModal = signal(false);
   isSaving = signal(false);
   editingCourse = signal<Course | null>(null);
+  thumbnailPreview = signal<string>('');
+  isUploadingThumb = signal(false);
 
   isAdmin = computed(() => this.auth.currentUser()?.role === 'Admin');
 
@@ -616,12 +745,14 @@ export class CourseManagementComponent implements OnInit {
 
   openCreate(): void {
     this.editingCourse.set(null);
+    this.thumbnailPreview.set('');
     this.form.reset({ title: '', description: '', category: '', level: 'Beginner', price: 0, thumbnailUrl: '', instructorId: '' });
     this.showModal.set(true);
   }
 
   openEdit(course: Course): void {
     this.editingCourse.set(course);
+    this.thumbnailPreview.set(course.thumbnailUrl || '');
     this.form.patchValue({
       title: course.title,
       description: course.description,
@@ -637,7 +768,55 @@ export class CourseManagementComponent implements OnInit {
   closeModal(): void {
     this.showModal.set(false);
     this.editingCourse.set(null);
+    this.thumbnailPreview.set('');
   }
+
+  onThumbnailFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    input.value = '';
+
+    // Show local preview immediately
+    const reader = new FileReader();
+    reader.onload = (e) => this.thumbnailPreview.set(e.target?.result as string);
+    reader.readAsDataURL(file);
+
+    const editing = this.editingCourse();
+    if (editing) {
+      // Course already exists — upload immediately
+      this.isUploadingThumb.set(true);
+      this.courseService.uploadThumbnail(editing.id, file).subscribe({
+        next: ({ thumbnailUrl }) => {
+          this.thumbnailPreview.set(thumbnailUrl);
+          this.form.patchValue({ thumbnailUrl });
+          this.courses.update(list => list.map(c => c.id === editing.id ? { ...c, thumbnailUrl } : c));
+          this.isUploadingThumb.set(false);
+        },
+        error: () => this.isUploadingThumb.set(false)
+      });
+    } else {
+      // New course — store file for upload after course creation
+      this.pendingThumbnailFile = file;
+    }
+  }
+
+  removeThumbnail(): void {
+    const editing = this.editingCourse();
+    if (editing && editing.thumbnailUrl) {
+      this.courseService.deleteThumbnail(editing.id).subscribe(() => {
+        this.thumbnailPreview.set('');
+        this.form.patchValue({ thumbnailUrl: '' });
+        this.courses.update(list => list.map(c => c.id === editing.id ? { ...c, thumbnailUrl: '' } : c));
+      });
+    } else {
+      this.thumbnailPreview.set('');
+      this.pendingThumbnailFile = null;
+      this.form.patchValue({ thumbnailUrl: '' });
+    }
+  }
+
+  private pendingThumbnailFile: File | null = null;
 
   save(): void {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
@@ -660,26 +839,40 @@ export class CourseManagementComponent implements OnInit {
 
     req$.subscribe({
       next: (saved) => {
-        const newInstructorId = val.instructorId;
-        if (this.isAdmin() && newInstructorId && newInstructorId !== saved.instructorId) {
-          this.courseService.assignInstructor(saved.id, newInstructorId).subscribe({
-            next: (updated) => {
-              this.courses.update(list => editing
-                ? list.map(c => c.id === updated.id ? updated : c)
-                : [updated, ...list]);
-              this.isSaving.set(false);
-              this.closeModal();
-            },
-            error: () => this.isSaving.set(false)
+        const finalize = (course: Course) => {
+          const newInstructorId = val.instructorId;
+          if (this.isAdmin() && newInstructorId && newInstructorId !== course.instructorId) {
+            this.courseService.assignInstructor(course.id, newInstructorId).subscribe({
+              next: (updated) => {
+                this.courses.update(list => editing
+                  ? list.map(c => c.id === updated.id ? updated : c)
+                  : [updated, ...list]);
+                this.isSaving.set(false);
+                this.closeModal();
+              },
+              error: () => this.isSaving.set(false)
+            });
+          } else {
+            if (editing) {
+              this.courses.update(list => list.map(c => c.id === course.id ? course : c));
+            } else {
+              this.courses.update(list => [course, ...list]);
+            }
+            this.isSaving.set(false);
+            this.closeModal();
+          }
+        };
+
+        // Upload pending thumbnail for newly created courses
+        if (!editing && this.pendingThumbnailFile) {
+          const file = this.pendingThumbnailFile;
+          this.pendingThumbnailFile = null;
+          this.courseService.uploadThumbnail(saved.id, file).subscribe({
+            next: ({ thumbnailUrl }) => finalize({ ...saved, thumbnailUrl }),
+            error: () => finalize(saved)
           });
         } else {
-          if (editing) {
-            this.courses.update(list => list.map(c => c.id === saved.id ? saved : c));
-          } else {
-            this.courses.update(list => [saved, ...list]);
-          }
-          this.isSaving.set(false);
-          this.closeModal();
+          finalize(saved);
         }
       },
       error: () => this.isSaving.set(false)

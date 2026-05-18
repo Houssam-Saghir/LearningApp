@@ -53,4 +53,14 @@ export class CourseService {
   assignInstructor(courseId: string, instructorId: string): Observable<Course> {
     return this.http.put<Course>(`${environment.apiUrl}/api/courses/${courseId}/assign-instructor`, { instructorId });
   }
+
+  uploadThumbnail(courseId: string, file: File): Observable<{ thumbnailUrl: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<{ thumbnailUrl: string }>(`${environment.apiUrl}/api/courses/${courseId}/upload-thumbnail`, form);
+  }
+
+  deleteThumbnail(courseId: string): Observable<void> {
+    return this.http.delete<void>(`${environment.apiUrl}/api/courses/${courseId}/thumbnail`);
+  }
 }

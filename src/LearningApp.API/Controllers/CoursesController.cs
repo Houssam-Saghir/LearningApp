@@ -113,7 +113,6 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
         course.ThumbnailUrl = request.ThumbnailUrl;
         course.Category = request.Category;
         course.Level = request.Level;
-        course.Price = request.Price;
         course.IsPublished = request.IsPublished;
         course.UpdatedAt = DateTime.UtcNow;
 
@@ -167,6 +166,61 @@ public class CoursesController(AppDbContext dbContext) : ControllerBase
         course.UpdatedAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync();
         return Ok(course);
+    }
+
+    [HttpPost("{id:guid}/upload-thumbnail")]
+    [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
+    [RequestSizeLimit(10_000_000)] // 10 MB
+    public async Task<ActionResult<object>> UploadThumbnail(Guid id, IFormFile file, IWebHostEnvironment env)
+    {
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null) return NotFound();
+
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!allowed.Contains(ext))
+            return BadRequest(new { message = "Only jpg, png, webp, gif files are allowed." });
+
+        var webRoot = env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+        var thumbsDir = Path.Combine(webRoot, "thumbnails");
+        Directory.CreateDirectory(thumbsDir);
+
+        // Remove old local thumbnail
+        if (!string.IsNullOrEmpty(course.ThumbnailUrl) && course.ThumbnailUrl.StartsWith("/thumbnails/"))
+        {
+            var oldPath = Path.Combine(webRoot, course.ThumbnailUrl.TrimStart('/'));
+            if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+        }
+
+        var fileName = $"{id}{ext}";
+        var filePath = Path.Combine(thumbsDir, fileName);
+        await using var stream = System.IO.File.Create(filePath);
+        await file.CopyToAsync(stream);
+
+        course.ThumbnailUrl = $"/thumbnails/{fileName}";
+        course.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync();
+
+        return Ok(new { thumbnailUrl = course.ThumbnailUrl });
+    }
+
+    [HttpDelete("{id:guid}/thumbnail")]
+    [Authorize(Roles = nameof(UserRole.Instructor) + "," + nameof(UserRole.Admin))]
+    public async Task<IActionResult> DeleteThumbnail(Guid id, IWebHostEnvironment env)
+    {
+        var course = await dbContext.Courses.FindAsync(id);
+        if (course is null) return NotFound();
+
+        if (!string.IsNullOrEmpty(course.ThumbnailUrl) && course.ThumbnailUrl.StartsWith("/thumbnails/"))
+        {
+            var path = Path.Combine(env.WebRootPath, course.ThumbnailUrl.TrimStart('/'));
+            if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+        }
+
+        course.ThumbnailUrl = string.Empty;
+        course.UpdatedAt = DateTime.UtcNow;
+        await dbContext.SaveChangesAsync();
+        return NoContent();
     }
 
     [HttpGet("{courseId:guid}/reviews")]
